@@ -23,6 +23,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Search History Management
+    Route::get('/user/record-search', function (\Illuminate\Http\Request $request) {
+        if ($request->filled('query')) {
+            \App\Models\SearchHistory::create([
+                'user_id' => auth()->id(),
+                'query'   => $request->input('query'),
+            ]);
+        }
+        return response()->json(['ok' => true]);
+    });
+
+    Route::delete('/user/search-history/{id}', function ($id) {
+        \App\Models\SearchHistory::where('user_id', auth()->id())
+            ->where('id', $id)
+            ->delete();
+        return response()->json(['ok' => true]);
+    });
 });
 
 require __DIR__.'/auth.php';
@@ -42,26 +60,6 @@ Route::get('/trending', function () {
 Route::get('/recommendations', function () {
     return Inertia::render('Recommendations');
 })->name('recommendations');
-
-// Record search history for logged-in users (runs in web middleware = session aware)
-Route::get('/user/record-search', function (\Illuminate\Http\Request $request) {
-    if (auth()->check() && $request->filled('query')) {
-        \App\Models\SearchHistory::create([
-            'user_id' => auth()->id(),
-            'query'   => $request->input('query'),
-        ]);
-    }
-    return response()->json(['ok' => true]);
-});
-
-Route::delete('/user/search-history/{id}', function ($id) {
-    if (auth()->check()) {
-        \App\Models\SearchHistory::where('user_id', auth()->id())
-            ->where('id', $id)
-            ->delete();
-    }
-    return response()->json(['ok' => true]);
-})->middleware('auth');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/watchlist', function () {
