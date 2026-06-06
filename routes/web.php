@@ -46,8 +46,12 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::get('/movie/{id}', function ($id) {
-    return Inertia::render('MovieDetails', ['id' => $id]);
+    return Inertia::render('MovieDetails', ['id' => $id, 'type' => 'movie']);
 })->name('movie');
+
+Route::get('/tv/{id}', function ($id) {
+    return Inertia::render('MovieDetails', ['id' => $id, 'type' => 'tv']);
+})->name('tv');
 
 Route::get('/movies', function () {
     return Inertia::render('Movies');

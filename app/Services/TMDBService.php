@@ -19,7 +19,7 @@ class TMDBService
     public function searchMovies($query)
     {
         return Cache::remember("tmdb_search_{$query}", 3600, function () use ($query) {
-            $response = Http::get("{$this->baseUrl}/search/movie", [
+            $response = Http::get("{$this->baseUrl}/search/multi", [
                 'api_key' => $this->apiKey,
                 'query' => $query,
                 'include_adult' => false
@@ -45,6 +45,18 @@ class TMDBService
     {
         return Cache::remember("tmdb_movie_{$id}", 3600, function () use ($id) {
             $response = Http::get("{$this->baseUrl}/movie/{$id}", [
+                'api_key' => $this->apiKey,
+                'append_to_response' => 'credits,videos,reviews'
+            ]);
+
+            return $response->json();
+        });
+    }
+
+    public function getTVDetails($id)
+    {
+        return Cache::remember("tmdb_tv_{$id}", 3600, function () use ($id) {
+            $response = Http::get("{$this->baseUrl}/tv/{$id}", [
                 'api_key' => $this->apiKey,
                 'append_to_response' => 'credits,videos,reviews'
             ]);

@@ -11,29 +11,31 @@ import ReviewCard from '@/Components/ReviewCard';
 import Footer from '@/Components/Footer';
 import axios from 'axios';
 
-export default function MovieDetails({ auth, id }) {
+export default function MovieDetails({ auth, id, type = 'movie' }) {
     const [movieData, setMovieData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if(id) {
-            axios.get(`/api/movies/details/${id}`)
+            const endpoint = type === 'tv' ? `/api/tv/details/${id}` : `/api/movies/details/${id}`;
+            axios.get(endpoint)
                 .then(res => {
                     const data = res.data;
+                    const isTv = type === 'tv';
                     setMovieData({
                         id: data.id,
-                        title: data.title,
+                        title: data.title || data.name,
                         tagline: data.tagline,
-                        year: data.release_date ? data.release_date.substring(0, 4) : 'N/A',
+                        year: (data.release_date || data.first_air_date || '').substring(0, 4) || 'N/A',
                         rating: data.vote_average ? data.vote_average.toFixed(1) : 'NR',
-                        runtime: data.runtime ? `${Math.floor(data.runtime / 60)}h ${data.runtime % 60}m` : 'N/A',
+                        runtime: data.runtime ? `${Math.floor(data.runtime / 60)}h ${data.runtime % 60}m` : (data.episode_run_time && data.episode_run_time.length > 0 ? `${data.episode_run_time[0]}m` : 'N/A'),
                         genres: data.genres ? data.genres.map(g => g.name) : [],
                         poster: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : 'https://via.placeholder.com/500x750',
                         backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : 'https://via.placeholder.com/1920x1080',
                         overview: data.overview,
                         metadata: [
-                            { label: "Release Date", value: data.release_date },
-                            { label: "Budget", value: data.budget ? `$${(data.budget / 1000000).toFixed(1)} Million` : 'Unknown' },
+                            { label: isTv ? "First Air Date" : "Release Date", value: data.release_date || data.first_air_date },
+                            { label: isTv ? "Seasons" : "Budget", value: isTv ? data.number_of_seasons : (data.budget ? `$${(data.budget / 1000000).toFixed(1)} Million` : 'Unknown') },
                             { label: "Status", value: data.status },
                             { label: "Original Language", value: data.original_language ? data.original_language.toUpperCase() : 'Unknown' }
                         ],

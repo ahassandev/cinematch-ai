@@ -48,6 +48,12 @@ class MovieController extends Controller
         return response()->json($results);
     }
 
+    public function tvDetails($id)
+    {
+        $results = $this->tmdb->getTVDetails($id);
+        return response()->json($results);
+    }
+
     public function recommendations($id)
     {
         $results = $this->tmdb->getRecommendations($id);

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\UserActivityController;
 Route::get('/movies/search', [MovieController::class, 'search']);
 Route::get('/movies/popular', [MovieController::class, 'popular']);
 Route::get('/movies/details/{id}', [MovieController::class, 'details']);
+Route::get('/tv/details/{id}', [MovieController::class, 'tvDetails']);
 Route::get('/movies/recommendations/{id}', [MovieController::class, 'recommendations']);
 Route::get('/movies/discover', [MovieController::class, 'discover']);
 Route::get('/movies/genres', [MovieController::class, 'genres']);

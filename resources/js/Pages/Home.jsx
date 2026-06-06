@@ -53,16 +53,18 @@ export default function Home({ auth }) {
         axios.get(`/api/movies/search?query=${encodeURIComponent(query)}`)
             .then(res => {
                 const results = res.data.results || [];
-                const mapped = results.map(r => ({
-                    id: r.id,
-                    title: r.title,
-                    rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
-                    genre: 'Movie',
-                    image: r.poster_path
-                        ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
-                        : 'https://via.placeholder.com/500x750?text=No+Poster',
-                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A'
-                }));
+                const mapped = results
+                    .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
+                    .map(r => ({
+                        id: r.id,
+                        title: r.title || r.name,
+                        rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
+                        genre: r.media_type === 'tv' ? 'TV Series' : 'Movie',
+                        image: r.poster_path
+                            ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
+                            : 'https://via.placeholder.com/500x750?text=No+Poster',
+                        year: (r.release_date || r.first_air_date || '').substring(0, 4) || 'N/A'
+                    }));
                 setSearchResults(mapped);
                 setIsSearching(false);
             })

@@ -1,8 +1,10 @@
 import { Link } from '@inertiajs/react';
 
 export default function MovieCard({ id, title, rating, genre, image, year, additionalClasses = "" }) {
+    const detailsUrl = genre === 'TV Series' ? `/tv/${id}` : `/movie/${id}`;
+
     return (
-        <Link href={`/movie/${id}`} className={`group relative w-full aspect-[2/3] shrink-0 rounded-[1.25rem] overflow-hidden cursor-pointer transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)] block ${additionalClasses}`}>
+        <Link href={detailsUrl} className={`group relative w-full aspect-[2/3] shrink-0 rounded-[1.25rem] overflow-hidden cursor-pointer transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)] block ${additionalClasses}`}>
             
             {/* Edge lighting / Border glow */}
             <div className="absolute inset-0 rounded-[1.25rem] border-2 border-transparent group-hover:border-white/20 transition-colors duration-500 z-30 pointer-events-none"></div>
