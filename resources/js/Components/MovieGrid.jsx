@@ -44,6 +44,7 @@ export default function MovieGrid({ title, subtitle, movies = [], loading = fals
                     {displayMovies.map((movie) => (
                         <div key={movie.id} className="w-full flex justify-center perspective-[1000px]">
                             <MovieCard 
+                                id={movie.id}
                                 title={movie.title}
                                 rating={movie.rating}
                                 genre={movie.genre}

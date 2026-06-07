@@ -61,11 +61,11 @@ export default function ActionButtons({ movie }) {
             
             <button 
                 onClick={toggleFavorite}
-                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl backdrop-blur-md border transform hover:-translate-y-1 transition-all flex items-center justify-center group relative cursor-pointer ${inFavorites ? 'bg-pink-600/30 border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.3)]' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(236,72,153,0.2)]'}`}
-                aria-label="Favorite"
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl backdrop-blur-md border transform hover:-translate-y-1 transition-all flex items-center justify-center group relative cursor-pointer ${inFavorites ? 'bg-blue-600/30 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.3)]' : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(37,99,235,0.2)]'}`}
+                aria-label="Like"
             >
-                <svg className={`w-6 h-6 transition-colors ${inFavorites ? 'text-pink-500 fill-pink-500' : 'text-gray-400 group-hover:text-pink-500 fill-transparent'}`} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <svg className={`w-6 h-6 transition-colors ${inFavorites ? 'text-blue-500 fill-blue-500' : 'text-gray-400 group-hover:text-blue-500 fill-transparent'}`} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
                 </svg>
             </button>
         </div>

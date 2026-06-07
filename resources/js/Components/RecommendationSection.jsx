@@ -42,6 +42,7 @@ export default function RecommendationSection() {
                             </div>
                             
                             <MovieCard 
+                                id={movie.id}
                                 title={movie.title}
                                 rating={movie.rating}
                                 genre={movie.genre}
