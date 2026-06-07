@@ -85,4 +85,97 @@ class MovieController extends Controller
         $results = $this->tmdb->discoverMovies($params);
         return response()->json($results);
     }
+
+    public function getPersonalizedRecommendations(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            $popular = $this->tmdb->getPopularMovies();
+            return response()->json($popular);
+        }
+
+        $favorites = \App\Models\Favorite::where('user_id', $user->id)->latest()->take(5)->get();
+        
+        if ($favorites->isEmpty()) {
+            $popular = $this->tmdb->getPopularMovies();
+            $results = collect($popular['results'])->map(function($r) {
+                $r['ai_reason'] = "Popular Pick";
+                return $r;
+            });
+            return response()->json(['results' => $results]);
+        }
+
+        return $this->getAggregateRecommendations($favorites);
+    }
+
+    public function getMovieAIRecommendations($id)
+    {
+        $movie = (object)[
+            'movie_id' => $id
+        ];
+        
+        return $this->getAggregateRecommendations(collect([$movie]));
+    }
+
+    protected function getAggregateRecommendations($baseMovies)
+    {
+        $allRecs = [];
+        $likedDirectors = [];
+
+        foreach ($baseMovies as $movie) {
+            $recs = $this->tmdb->getRecommendations($movie->movie_id);
+            $credits = $this->tmdb->getMovieCredits($movie->movie_id);
+            
+            // Collect directors of movies the user likes
+            $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
+            if ($director) {
+                $likedDirectors[] = $director['name'];
+            }
+
+            if (isset($recs['results'])) {
+                foreach ($recs['results'] as $r) {
+                    $recId = $r['id'];
+                    if (!isset($allRecs[$recId])) {
+                        $allRecs[$recId] = $r;
+                        $allRecs[$recId]['score'] = 10; // Base score for being a recommendation
+                    } else {
+                        $allRecs[$recId]['score'] += 10; // Bonus for being recommended by multiple liked movies
+                    }
+                }
+            }
+        }
+
+        // Apply director-based bonus
+        foreach ($allRecs as &$rec) {
+            $recCredits = $this->tmdb->getMovieCredits($rec['id']);
+            $recDirector = collect($recCredits['crew'] ?? [])->firstWhere('job', 'Director');
+            
+            if ($recDirector && in_array($recDirector['name'], $likedDirectors)) {
+                $rec['score'] += 50; // Massively boost movies by the same director
+                $rec['ai_reason'] = "Directed by " . $recDirector['name'];
+            }
+        }
+
+        // Sort by score
+        $sortedRecs = collect($allRecs)
+            ->sortByDesc('score')
+            ->take(20)
+            ->values();
+
+        return response()->json(['results' => $sortedRecs]);
+    }
+
+    public function getTrending(Request $request)
+    {
+        $timeWindow = $request->input('period', 'day');
+        $type = $request->input('type', 'trending');
+
+        if ($type === 'top_rated') {
+            $data = $this->tmdb->getTopRatedMovies();
+        } else {
+            $data = $this->tmdb->getTrendingMovies($timeWindow);
+        }
+
+        return response()->json($data);
+    }
 }

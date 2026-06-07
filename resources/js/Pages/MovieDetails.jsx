@@ -131,7 +131,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                 </section>
 
                 <div className="mt-8 relative z-20">
-                    <RecommendationSection />
+                    <RecommendationSection movieId={movieData.id} />
                 </div>
             </main>
             

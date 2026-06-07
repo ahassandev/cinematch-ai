@@ -5,14 +5,14 @@ import Footer from '@/Components/Footer';
 import PageHeader from '@/Components/PageHeader';
 import TrendingMovies from '@/Components/TrendingMovies';
 
-export default function Trending() {
+export default function Trending({ auth }) {
     // We can reuse TrendingMovies.jsx which looks like a carousel.
     // If we need multiple sections, we can render multiple instances of it.
     
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-purple-500/30">
             <Head title="Trending - CineMatch AI" />
-            <Navbar />
+            <Navbar auth={auth} />
 
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute top-[-20%] right-[-10%] w-[50rem] h-[50rem] bg-blue-900/10 rounded-full blur-[100px]"></div>
@@ -25,31 +25,26 @@ export default function Trending() {
                     subtitle="Discover what people are watching right now. Updated daily across the globe."
                 />
 
-                <div className="space-y-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                    <section>
-                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                            <span className="w-2 h-8 rounded-full bg-gradient-to-b from-purple-500 to-blue-500"></span>
-                            Trending Today
-                        </h2>
-                        {/* Assuming TrendingMovies component handles its own layout, but we'll try to just pass dummy array if needed. Wait, TrendingMovies might be a specific carousel from homepage. Let's render it directly if it's generic enough. */}
-                        <TrendingMovies />
-                    </section>
+                <div className="mt-12">
+                    <TrendingMovies 
+                        title="Trending Today" 
+                        period="day" 
+                        type="trending"
+                        subtitle="The most popular movies across the world in the last 24 hours."
+                    />
                     
-                    <section>
-                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                            <span className="w-2 h-8 rounded-full bg-gradient-to-b from-purple-500 to-blue-500"></span>
-                            Most Popular This Week
-                        </h2>
-                        <TrendingMovies />
-                    </section>
+                    <TrendingMovies 
+                        title="Most Popular This Week" 
+                        period="week" 
+                        type="trending"
+                        subtitle="Movies that have gained the most traction over the past 7 days."
+                    />
 
-                    <section>
-                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                            <span className="w-2 h-8 rounded-full bg-gradient-to-b from-purple-500 to-blue-500"></span>
-                            Top Rated Movies
-                        </h2>
-                        <TrendingMovies />
-                    </section>
+                    <TrendingMovies 
+                        title="Top Rated Movies" 
+                        type="top_rated"
+                        subtitle="Cinematic masterpieces highly rated by the global community."
+                    />
                 </div>
             </main>
 

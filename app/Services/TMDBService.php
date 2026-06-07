@@ -102,4 +102,35 @@ class TMDBService
             return $response->json();
         });
     }
+
+    public function getMovieCredits($id)
+    {
+        return Cache::remember("tmdb_credits_{$id}", 86400, function () use ($id) {
+            $response = Http::get("{$this->baseUrl}/movie/{$id}/credits", [
+                'api_key' => $this->apiKey
+            ]);
+
+            return $response->json();
+        });
+    }
+
+    public function getTrendingMovies($timeWindow = 'day')
+    {
+        return Cache::remember("tmdb_trending_{$timeWindow}", 3600, function () use ($timeWindow) {
+            $response = Http::get("{$this->baseUrl}/trending/movie/{$timeWindow}", [
+                'api_key' => $this->apiKey
+            ]);
+            return $response->json();
+        });
+    }
+
+    public function getTopRatedMovies()
+    {
+        return Cache::remember("tmdb_top_rated", 86400, function () {
+            $response = Http::get("{$this->baseUrl}/movie/top_rated", [
+                'api_key' => $this->apiKey
+            ]);
+            return $response->json();
+        });
+    }
 }

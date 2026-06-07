@@ -88,15 +88,60 @@ class UserActivityController extends Controller
     {
         $request->validate([
             'movie_id' => 'required',
-            'type' => 'required|in:like,dislike'
+            'type' => 'required|in:like,dislike',
+            'title' => 'nullable',
+            'poster_path' => 'nullable'
         ]);
 
         $feedback = MovieFeedback::updateOrCreate(
             ['user_id' => auth()->id(), 'movie_id' => $request->movie_id],
-            ['type' => $request->type]
+            [
+                'type' => $request->type,
+                'title' => $request->title,
+                'poster_path' => $request->poster_path
+            ]
         );
 
         return response()->json(['message' => 'Feedback saved', 'status' => $request->type]);
+    }
+
+    public function indexDisliked(Request $request)
+    {
+        $disliked = MovieFeedback::where('user_id', auth()->id())
+                                 ->where('type', 'dislike')
+                                 ->latest()
+                                 ->get();
+        
+        // Auto-fix missing metadata for old records
+        $tmdb = app(\App\Services\TMDBService::class);
+        $disliked->each(function ($item) use ($tmdb) {
+            if (empty($item->title) || empty($item->poster_path)) {
+                try {
+                    $details = $tmdb->getMovieDetails($item->movie_id);
+                    if ($details) {
+                        $item->update([
+                            'title' => $details['title'] ?? 'Unknown Movie',
+                            'poster_path' => $details['poster_path'] ?? null
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Failed to repair dislike metadata for {$item->movie_id}: " . $e->getMessage());
+                }
+            }
+        });
+
+        return response()->json($disliked);
+    }
+
+    public function removeFeedback(Request $request)
+    {
+        $request->validate(['movie_id' => 'required']);
+        
+        MovieFeedback::where('user_id', auth()->id())
+                    ->where('movie_id', $request->movie_id)
+                    ->delete();
+                    
+        return response()->json(['message' => 'Feedback removed']);
     }
 
     public function indexWatchlist(Request $request)

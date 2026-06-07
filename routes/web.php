@@ -70,8 +70,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Watchlist');
     })->name('watchlist');
 
+    Route::get('/disliked', function () {
+        return Inertia::render('DislikedMovies');
+    })->name('disliked');
+
     // User activity — needs session auth (web middleware handles CSRF)
+    Route::get('/user/watchlist-data', [\App\Http\Controllers\Api\UserActivityController::class, 'indexWatchlist']);
+    Route::get('/user/disliked-data', [\App\Http\Controllers\Api\UserActivityController::class, 'indexDisliked']);
     Route::post('/user/watchlist/toggle', [\App\Http\Controllers\Api\UserActivityController::class, 'toggleWatchlist']);
     Route::post('/user/favorites/toggle', [\App\Http\Controllers\Api\UserActivityController::class, 'toggleFavorite']);
     Route::post('/user/feedback', [\App\Http\Controllers\Api\UserActivityController::class, 'leaveFeedback']);
+    Route::post('/user/feedback/remove', [\App\Http\Controllers\Api\UserActivityController::class, 'removeFeedback']);
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
@@ -7,52 +7,35 @@ import RecommendationCard from '@/Components/RecommendationCard';
 import axios from 'axios';
 
 export default function Recommendations({ auth }) {
-    const [hasSearched, setHasSearched] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [recommendations, setRecommendations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [personalizedRecs, setPersonalizedRecs] = useState([]);
     const [error, setError] = useState('');
 
-    const handleSearch = async (query) => {
+    useEffect(() => {
+        fetchPersonalized();
+    }, [auth.user]);
+
+    const fetchPersonalized = async () => {
         setLoading(true);
         setError('');
-
-        // Record search history (web route = session aware)
-        axios.get(`/user/record-search?query=${encodeURIComponent(query)}`).catch(() => {});
-
         try {
-            // First search for the movie
-            const searchRes = await axios.get(`/api/movies/search?query=${query}`);
-            const searchResults = searchRes.data.results;
+            const res = await axios.get('/api/movies/personalized');
+            const rawRecs = res.data.results || [];
             
-            if (searchResults && searchResults.length > 0) {
-                // Take the first result as the primary target
-                const targetMovie = searchResults[0];
-                
-                // Fetch recommendations for this specific movie
-                const recRes = await axios.get(`/api/movies/recommendations/${targetMovie.id}`);
-                const rawRecs = recRes.data.results || [];
-                
-                // Map to our component format
-                const mappedRecs = rawRecs.slice(0, 10).map((r, index) => ({
-                    id: r.id,
-                    title: r.title,
-                    rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
-                    genre: 'Movie', // Simplification, TMDB provides genre_ids
-                    image: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster',
-                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
-                    matchScore: Math.max(50, 99 - index * 3) // Simulated declining match score
-                }));
-                
-                setRecommendations(mappedRecs);
-                setHasSearched(true);
-            } else {
-                setError('No movies found for that search. Try something else!');
-                setHasSearched(false);
-            }
+            const mapped = rawRecs.map((r, index) => ({
+                id: r.id,
+                title: r.title,
+                rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
+                genre: r.ai_reason || 'AI Match',
+                image: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster',
+                year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
+                matchScore: Math.max(70, 99 - index * 2)
+            }));
+            
+            setPersonalizedRecs(mapped);
         } catch (err) {
-            console.error(err);
-            setError('Failed to fetch recommendations. Try again later.');
-            setHasSearched(false);
+            console.error("Personalized fetch failed", err);
+            setError('Unable to load recommendations. Please try refreshing.');
         } finally {
             setLoading(false);
         }
@@ -60,7 +43,7 @@ export default function Recommendations({ auth }) {
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-purple-500/30">
-            <Head title="AI Recommendations - CineMatch AI" />
+            <Head title="Discovery Feed - CineMatch AI" />
             <Navbar auth={auth} />
 
             <div className="fixed inset-0 z-0 pointer-events-none">
@@ -72,53 +55,69 @@ export default function Recommendations({ auth }) {
                 <div className="text-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a1a24] border border-white/10 text-purple-400 font-bold text-sm tracking-wide mb-6 shadow-xl">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.381z" clipRule="evenodd"></path></svg>
-                        POWERED BY AI
+                        PERSONALIZED FEED
                     </div>
                     <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-white drop-shadow-2xl mb-6 tracking-tight">
-                        AI Recommendations
+                        Discovery Feed
                     </h1>
                     <p className="max-w-2xl mx-auto text-xl text-gray-400">
-                        Movies selected specifically based on your unique interests.
+                        Sit back and relax. We've handpicked these movies specifically for you.
                     </p>
                 </div>
 
-                <SearchBar onSearch={handleSearch} />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {error && (
+                        <div className="max-w-xl mx-auto px-4 text-center mb-12 text-red-500 font-bold bg-red-500/10 py-4 rounded-2xl border border-red-500/20">
+                            {error}
+                        </div>
+                    )}
 
-                {error && (
-                    <div className="max-w-xl mx-auto px-4 text-center mt-[-40px] mb-8 text-red-500 font-bold bg-red-500/10 py-3 rounded-xl border border-red-500/20">
-                        {error}
-                    </div>
-                )}
-
-                {hasSearched && !loading ? (
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div>
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-2xl font-bold flex items-center gap-3">
                                 <span className="w-2 h-8 rounded-full bg-gradient-to-b from-green-400 to-emerald-600"></span>
-                                Top Matches for You
+                                Top AI Picks
                             </h2>
-                            <button onClick={() => setHasSearched(false)} className="text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors">
-                                Clear Results
+                            <button 
+                                onClick={fetchPersonalized} 
+                                className="flex items-center gap-2 text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors bg-purple-500/5 px-4 py-2 rounded-lg border border-purple-500/10"
+                            >
+                                <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Refresh Feed
                             </button>
                         </div>
                         
-                        {recommendations.length > 0 ? (
+                        {loading ? (
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-                                {recommendations.map((movie) => (
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => (
+                                    <div key={i} className="aspect-[2/3] rounded-[1.25rem] bg-white/5 animate-pulse border border-white/5"></div>
+                                ))}
+                            </div>
+                        ) : personalizedRecs.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                                {personalizedRecs.map((movie) => (
                                     <RecommendationCard key={movie.id} {...movie} />
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center text-gray-400 my-16">
-                                No recommendations found for this specific movie.
+                            <div className="text-center py-24 bg-white/5 rounded-[2rem] border border-white/10 px-6 backdrop-blur-md">
+                                <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-purple-500/20 shadow-2xl">
+                                    <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold mb-3">Feed is being prepared</h3>
+                                <p className="text-gray-400 max-w-sm mx-auto mb-10 leading-relaxed text-lg">Like some movies or search for films to help the AI understand your unique taste better.</p>
+                                <a href="/movies" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-xl">
+                                    Browse Movies
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+                                </a>
                             </div>
                         )}
                     </div>
-                ) : !loading && !hasSearched && !error ? (
-                    <div className="max-w-4xl mx-auto px-4 mt-8 text-center text-gray-500 italic">
-                        Try searching for a movie you love (e.g., "Interstellar") to see AI matches...
-                    </div>
-                ) : null}
+                </div>
             </main>
 
             <Footer />

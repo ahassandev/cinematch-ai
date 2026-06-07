@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function Navbar({ auth }) {
+    const { url } = usePage();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const isDashboard = url === '/dashboard';
 
     useEffect(() => {
         const handleScroll = () => {
@@ -48,14 +51,14 @@ export default function Navbar({ auth }) {
                                 { name: 'Movies', href: '/movies' }, 
                                 { name: 'Trending', href: '/trending' }
                             ].map((item) => (
-                                <Link key={item.name} href={item.href} className="px-4 py-2 rounded-full text-sm font-semibold tracking-wide text-gray-300 hover:text-white hover:bg-white/5 transition-all relative overflow-hidden group">
+                                <Link key={item.name} href={item.href} className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all relative overflow-hidden group ${url === item.href ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
                                     {item.name}
                                 </Link>
                             ))}
                             
                             <Link href="/recommendations" className="px-4 py-2 flex items-center gap-2 rounded-full relative group overflow-hidden">
-                                <div className="absolute inset-0 bg-purple-500/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400 font-semibold tracking-wide text-sm relative z-10 transition-all group-hover:brightness-125">
+                                <div className={`absolute inset-0 bg-purple-500/10 rounded-full transition-opacity ${url === '/recommendations' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
+                                <span className={`font-semibold tracking-wide text-sm relative z-10 transition-all group-hover:brightness-125 ${url === '/recommendations' ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400'}`}>
                                     Recommendations
                                 </span>
                                 <span className="relative flex w-2 h-2 z-10">
@@ -81,12 +84,37 @@ export default function Navbar({ auth }) {
                         <div className="w-px h-6 bg-white/10 mx-2"></div>
 
                         {auth?.user ? (
-                            <Link
-                                href={route('dashboard')}
-                                className="text-gray-300 hover:text-white text-sm font-semibold transition-colors px-4 py-2 hover:bg-white/5 rounded-full"
-                            >
-                                Dashboard
-                            </Link>
+                            <div className="flex items-center gap-1">
+                                <Link
+                                    href={route('watchlist')}
+                                    className={`text-sm font-semibold transition-colors px-4 py-2 rounded-full ${url === '/watchlist' ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    Watchlist
+                                </Link>
+                                <Link
+                                    href="/disliked"
+                                    className={`text-sm font-semibold transition-colors px-4 py-2 rounded-full ${url === '/disliked' ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    Disliked
+                                </Link>
+                                {isDashboard ? (
+                                    <Link
+                                        href={route('logout')}
+                                        method="post"
+                                        as="button"
+                                        className="text-red-400 hover:text-red-300 text-sm font-bold transition-colors px-4 py-2 hover:bg-red-500/5 rounded-full ml-2 border border-red-500/10 hover:border-red-500/30"
+                                    >
+                                        Log Out
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href={route('dashboard')}
+                                        className="text-gray-300 hover:text-white text-sm font-semibold transition-colors px-4 py-2 hover:bg-white/5 rounded-full"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                )}
+                            </div>
                         ) : (
                             <>
                                 <Link
@@ -155,7 +183,20 @@ export default function Navbar({ auth }) {
                         
                         <div className="flex flex-col gap-3">
                             {auth?.user ? (
-                                <Link href={route('dashboard')} className="w-full text-center px-4 py-3 rounded-xl text-white font-bold bg-white/10">Dashboard</Link>
+                                <>
+                                    {isDashboard ? (
+                                        <Link 
+                                            href={route('logout')} 
+                                            method="post" 
+                                            as="button" 
+                                            className="w-full text-center px-4 py-3 rounded-xl text-red-400 font-bold bg-red-500/10 border border-red-500/20"
+                                        >
+                                            Log Out
+                                        </Link>
+                                    ) : (
+                                        <Link href={route('dashboard')} className="w-full text-center px-4 py-3 rounded-xl text-white font-bold bg-white/10">Dashboard</Link>
+                                    )}
+                                </>
                             ) : (
                                 <>
                                     <Link href={route('login')} className="w-full text-center px-4 py-3 rounded-xl text-white font-bold bg-white/5 border border-white/10">Log In</Link>
