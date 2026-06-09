@@ -3,22 +3,17 @@ import axios from 'axios';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
-import StatsCard from '@/Components/StatsCard';
 
 export default function Dashboard({ auth, stats }) {
     const user = auth?.user || { name: 'Guest' };
 
-    // stats is now passed directly from Laravel via Inertia props
-    const searches        = stats?.searches ?? 0;
-    const watchlistCount  = stats?.watchlists ?? 0;
-    const favoritesCount  = stats?.favorites ?? 0;
     const recentWatchlist = stats?.recent_watchlists ?? [];
     const [localRecentSearches, setLocalRecentSearches] = useState(stats?.recent_searches ?? []);
 
     const handleDeleteSearch = async (e, id) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         try {
             await axios.delete(`/user/search-history/${id}`);
             setLocalRecentSearches(localRecentSearches.filter(s => s.id !== id));
@@ -26,36 +21,6 @@ export default function Dashboard({ auth, stats }) {
             console.error('Failed to delete search history:', error);
         }
     };
-
-    const statCards = [
-        {
-            title: 'Movies Searched',
-            value: searches,
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-            )
-        },
-        {
-            title: 'Watchlist',
-            value: watchlistCount,
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
-                </svg>
-            )
-        },
-        {
-            title: 'Favorites',
-            value: favoritesCount,
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-            )
-        }
-    ];
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-purple-500/30 overflow-x-hidden">
@@ -80,16 +45,11 @@ export default function Dashboard({ auth, stats }) {
                         href="/recommendations"
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-transform hover:scale-105 shadow-[0_10px_30px_rgba(147,51,234,0.3)]"
                     >
-                        ✨ Get New Recommendations
+                      View Recommendations
                     </Link>
                 </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-                    {statCards.map((stat, i) => (
-                        <StatsCard key={i} title={stat.title} value={stat.value} icon={stat.icon} />
-                    ))}
-                </div>
+
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -29,5 +29,6 @@ Route::middleware('auth:web')->group(function () {
     Route::post('/user/feedback/remove', [UserActivityController::class, 'removeFeedback']);
     Route::get('/user/watchlist', [UserActivityController::class, 'indexWatchlist']);
     Route::get('/user/disliked', [UserActivityController::class, 'indexDisliked']);
+    Route::get('/user/match-score', [UserActivityController::class, 'getMatchScore']);
     // Toggle routes moved to web.php for proper session/CSRF handling
 });

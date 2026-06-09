@@ -86,7 +86,9 @@ export default function ActionButtons({ movie, auth }) {
                 movie_id: movie.id,
                 type: 'like',
                 title: movie.title,
-                poster_path: movie.poster ? movie.poster.replace('https://image.tmdb.org/t/p/w500', '') : null
+                poster_path: movie.poster ? movie.poster.replace('https://image.tmdb.org/t/p/w500', '') : null,
+                genre: movie.genres && movie.genres.length > 0 ? movie.genres[0] : null,
+                tmdb_rating: movie.rating ? parseFloat(movie.rating) : null,
             }).catch(err => console.error("Feedback update failed", err));
         }
     };

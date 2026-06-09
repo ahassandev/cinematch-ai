@@ -87,10 +87,12 @@ class UserActivityController extends Controller
     public function leaveFeedback(Request $request)
     {
         $request->validate([
-            'movie_id' => 'required',
-            'type' => 'required|in:like,dislike',
-            'title' => 'nullable',
-            'poster_path' => 'nullable'
+            'movie_id'    => 'required',
+            'type'        => 'required|in:like,dislike',
+            'title'       => 'nullable|string',
+            'poster_path' => 'nullable|string',
+            'genre'       => 'nullable|string',
+            'tmdb_rating' => 'nullable|numeric',
         ]);
 
         $feedback = MovieFeedback::updateOrCreate(
@@ -98,11 +100,52 @@ class UserActivityController extends Controller
             [
                 'type' => $request->type,
                 'title' => $request->title,
-                'poster_path' => $request->poster_path
+                'poster_path' => $request->poster_path,
+                'genre' => $request->genre,
+                'tmdb_rating' => $request->tmdb_rating,
             ]
         );
 
         return response()->json(['message' => 'Feedback saved', 'status' => $request->type]);
+    }
+
+    public function getMatchScore(Request $request)
+    {
+        $request->validate([
+            'genre' => 'required|string',
+            'tmdb_rating' => 'required|numeric',
+        ]);
+
+        $genre = $request->genre;
+        $currentRating = (float) $request->tmdb_rating;
+
+        // Get all liked movies of the same genre for this user
+        $likedInGenre = MovieFeedback::where('user_id', auth()->id())
+            ->where('type', 'like')
+            ->where('genre', $genre)
+            ->whereNotNull('tmdb_rating')
+            ->get();
+
+        if ($likedInGenre->isEmpty()) {
+            return response()->json([
+                 'match'   => null,
+                 'count'   => 0,
+                 'genre'   => $genre,
+                 'message' => "Your first {$genre} movie! Like more to get a personalised score.",
+            ]);
+        }
+
+        $avgRating = $likedInGenre->avg('tmdb_rating');
+        $matchScore = min(100, (int) round(($currentRating / max($avgRating, 0.1)) * 100));
+        $count = $likedInGenre->count();
+
+        return response()->json([
+            'match'   => $matchScore,
+            'count'   => $count,
+            'genre'   => $genre,
+            'avg'     => round($avgRating, 1),
+            'message' => "Based on {$count} liked {$genre} movies (avg " . number_format($avgRating, 1) . " rating).",
+        ]);
     }
 
     public function indexDisliked(Request $request)

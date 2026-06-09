@@ -95,7 +95,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                             <MovieInfo overview={movieData.overview} metadata={movieData.metadata} />
                         </div>
                         <div className="w-full xl:w-[450px] shrink-0 xl:mt-12">
-                            <RatingCard />
+                            <RatingCard movieId={movieData.id} genres={movieData.genres} rating={movieData.rating} auth={auth} />
                         </div>
                     </div>
                 </div>
