@@ -53,13 +53,6 @@ Route::get('/tv/{id}', function ($id) {
     return Inertia::render('MovieDetails', ['id' => $id, 'type' => 'tv']);
 })->name('tv');
 
-Route::get('/movies', function () {
-    return Inertia::render('Movies');
-})->name('movies');
-
-Route::get('/trending', function () {
-    return Inertia::render('Trending');
-})->name('trending');
 
 Route::get('/recommendations', function () {
     return Inertia::render('Recommendations');

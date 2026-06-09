@@ -47,9 +47,7 @@ export default function Navbar({ auth }) {
                         {/* Desktop Links */}
                         <div className="hidden lg:flex space-x-1">
                             {[
-                                { name: 'Home', href: '/' }, 
-                                { name: 'Movies', href: '/movies' }, 
-                                { name: 'Trending', href: '/trending' }
+                                { name: 'Home', href: '/' }
                             ].map((item) => (
                                 <Link key={item.name} href={item.href} className={`px-4 py-2 rounded-full text-sm font-semibold tracking-wide transition-all relative overflow-hidden group ${url === item.href ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}>
                                     {item.name}
@@ -71,15 +69,6 @@ export default function Navbar({ auth }) {
 
                     {/* Right side buttons */}
                     <div className="hidden lg:flex items-center space-x-4">
-                        <Link 
-                            href="/movies"
-                            className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors border border-white/5"
-                            aria-label="Search Movies"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </Link>
                         
                         <div className="w-px h-6 bg-white/10 mx-2"></div>
 
@@ -135,15 +124,6 @@ export default function Navbar({ auth }) {
 
                     {/* Mobile Hamburger Button */}
                     <div className="lg:hidden flex items-center gap-4">
-                        <Link 
-                            href="/movies"
-                            className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-300 border border-white/5"
-                            aria-label="Search Movies"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </Link>
                         <button 
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="bg-white/5 backdrop-blur-md p-2.5 rounded-xl border border-white/10 text-gray-300 hover:text-white transition-colors"
@@ -165,9 +145,7 @@ export default function Navbar({ auth }) {
                 <div className="bg-[#0a0a0a]/95 backdrop-blur-2xl shadow-2xl">
                     <div className="px-4 py-6 flex flex-col gap-2">
                         {[
-                            { name: 'Home', href: '/' }, 
-                            { name: 'Movies', href: '/movies' }, 
-                            { name: 'Trending', href: '/trending' }
+                            { name: 'Home', href: '/' }
                         ].map((item) => (
                             <Link key={item.name} href={item.href} className="px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-semibold text-lg transition-colors border-l-2 border-transparent hover:border-red-500">
                                 {item.name}

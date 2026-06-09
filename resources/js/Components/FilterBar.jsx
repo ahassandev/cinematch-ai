@@ -27,12 +27,12 @@ export default function FilterBar({ onFilterChange }) {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 relative z-20">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 relative z-20">
             <div className="bg-[#1a1a24]/60 p-4 rounded-2xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-wrap gap-4 items-center justify-between hover:border-white/20 transition-colors">
                 <div className="flex flex-wrap gap-3 w-full md:w-auto">
                     {/* Genre Filter */}
                     <div className="flex-1 md:flex-none relative">
-                        <select 
+                        <select
                             value={selectedGenre}
                             onChange={(e) => setSelectedGenre(e.target.value)}
                             className="w-full bg-[#0a0a0f] border border-white/10 text-white rounded-xl pl-4 pr-10 py-2.5 focus:border-purple-500/50 focus:ring-0 focus:outline-none cursor-pointer appearance-none text-sm font-medium hover:bg-white/5 transition-colors [color-scheme:dark]"
@@ -49,7 +49,7 @@ export default function FilterBar({ onFilterChange }) {
 
                     {/* Year Filter */}
                     <div className="flex-1 md:flex-none relative">
-                        <select 
+                        <select
                             value={selectedYear}
                             onChange={(e) => setSelectedYear(e.target.value)}
                             className="w-full bg-[#0a0a0f] border border-white/10 text-white rounded-xl pl-4 pr-10 py-2.5 focus:border-purple-500/50 focus:ring-0 focus:outline-none cursor-pointer appearance-none text-sm font-medium hover:bg-white/5 transition-colors [color-scheme:dark]"
@@ -66,7 +66,7 @@ export default function FilterBar({ onFilterChange }) {
 
                     {/* Rating Filter */}
                     <div className="flex-1 md:flex-none relative">
-                        <select 
+                        <select
                             value={selectedRating}
                             onChange={(e) => setSelectedRating(e.target.value)}
                             className="w-full bg-[#0a0a0f] border border-white/10 text-white rounded-xl pl-4 pr-10 py-2.5 focus:border-purple-500/50 focus:ring-0 focus:outline-none cursor-pointer appearance-none text-sm font-medium hover:bg-white/5 transition-colors [color-scheme:dark]"
@@ -82,7 +82,7 @@ export default function FilterBar({ onFilterChange }) {
                     </div>
                 </div>
 
-                <button 
+                <button
                     onClick={handleApply}
                     className="w-full md:w-auto px-8 py-2.5 rounded-xl text-white font-bold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 border border-white/10 transition-all flex items-center justify-center gap-2 group shadow-[0_10px_20px_rgba(147,51,234,0.3)] active:scale-95"
                 >
