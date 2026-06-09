@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import RecommendationCard from '@/Components/RecommendationCard';
+import AuthModal from '@/Components/AuthModal';
 
-export default function ActionButtons({ movie }) {
+export default function ActionButtons({ movie, auth }) {
     const [inWatchlist, setInWatchlist] = useState(false);
     const [inFavorites, setInFavorites] = useState(false);
     const [isDisliked, setIsDisliked] = useState(false);
     const [aiRecs, setAiRecs] = useState([]);
     const [loadingRecs, setLoadingRecs] = useState(false);
+    const [showAuthModal, setShowAuthModal] = useState(false);
 
     const toggleWatchlist = () => {
         if (!movie) return;
+        if (!auth?.user) {
+            setShowAuthModal(true);
+            return;
+        }
         setInWatchlist(!inWatchlist);
         axios.post('/user/watchlist/toggle', {
             movie_id: movie.id,
@@ -50,6 +56,10 @@ export default function ActionButtons({ movie }) {
 
     const toggleFavorite = () => {
         if (!movie) return;
+        if (!auth?.user) {
+            setShowAuthModal(true);
+            return;
+        }
         
         const newState = !inFavorites;
         setInFavorites(newState);
@@ -83,6 +93,10 @@ export default function ActionButtons({ movie }) {
 
     const toggleDislike = () => {
         if (!movie) return;
+        if (!auth?.user) {
+            setShowAuthModal(true);
+            return;
+        }
 
         const newState = !isDisliked;
         setIsDisliked(newState);
@@ -114,6 +128,10 @@ export default function ActionButtons({ movie }) {
 
     return (
         <div className="flex flex-col gap-8 mt-8">
+            <AuthModal 
+                isOpen={showAuthModal} 
+                onClose={() => setShowAuthModal(false)} 
+            />
             <div className="flex flex-wrap items-center gap-3 md:gap-4">
                 <button className="px-6 py-3.5 md:py-4 rounded-xl text-sm md:text-base font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transform hover:-translate-y-1 transition-all flex items-center gap-3 flex-1 md:flex-none justify-center group relative overflow-hidden">
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>

@@ -1,6 +1,6 @@
 import ActionButtons from './ActionButtons';
 
-export default function MovieHero({ movie }) {
+export default function MovieHero({ movie, auth }) {
     return (
         <section className="relative w-full pt-20 pb-16 md:pt-32 md:pb-24 overflow-hidden min-h-[85vh] flex items-center bg-[#050505]">
             {/* Blurred Background with Gradients */}
@@ -63,7 +63,7 @@ export default function MovieHero({ movie }) {
                         </div>
 
                         {/* Interactive Buttons */}
-                        <ActionButtons movie={movie} />
+                        <ActionButtons movie={movie} auth={auth} />
                     </div>
                 </div>
             </div>

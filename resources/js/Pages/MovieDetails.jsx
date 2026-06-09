@@ -87,7 +87,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
             <Navbar auth={auth} />
             
             <main className="w-full relative z-0 flex flex-col pt-0">
-                <MovieHero movie={movieData} />
+                <MovieHero movie={movieData} auth={auth} />
 
                 <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-4">
                     <div className="flex flex-col xl:flex-row gap-10">
