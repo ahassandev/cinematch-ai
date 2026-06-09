@@ -81,6 +81,12 @@ export default function Navbar({ auth }) {
                                     Watchlist
                                 </Link>
                                 <Link
+                                    href="/liked"
+                                    className={`text-sm font-semibold transition-colors px-4 py-2 rounded-full ${url === '/liked' ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    Liked
+                                </Link>
+                                <Link
                                     href="/disliked"
                                     className={`text-sm font-semibold transition-colors px-4 py-2 rounded-full ${url === '/disliked' ? 'text-white bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/5'}`}
                                 >
@@ -156,6 +162,12 @@ export default function Navbar({ auth }) {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400 group-hover:brightness-125">Recommendations</span>
                             <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)]"></span>
                         </Link>
+
+                        <div className="flex flex-col px-4 py-2 border-l-2 border-transparent">
+                            <Link href="/watchlist" className="py-2 text-gray-300 hover:text-white font-semibold transition-colors">Watchlist</Link>
+                            <Link href="/liked" className="py-2 text-gray-300 hover:text-white font-semibold transition-colors">Liked</Link>
+                            <Link href="/disliked" className="py-2 text-gray-300 hover:text-white font-semibold transition-colors">Disliked</Link>
+                        </div>
                         
                         <div className="h-px bg-white/5 my-4"></div>
                         

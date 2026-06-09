@@ -149,4 +149,32 @@ class UserActivityController extends Controller
         $watchlists = Watchlist::where('user_id', auth()->id())->latest()->get();
         return response()->json($watchlists);
     }
+
+    public function indexLiked(Request $request)
+    {
+        $liked = MovieFeedback::where('user_id', auth()->id())
+                                 ->where('type', 'like')
+                                 ->latest()
+                                 ->get();
+        
+        // Auto-fix missing metadata for old records
+        $tmdb = app(\App\Services\TMDBService::class);
+        $liked->each(function ($item) use ($tmdb) {
+            if (empty($item->title) || empty($item->poster_path)) {
+                try {
+                    $details = $tmdb->getMovieDetails($item->movie_id);
+                    if ($details) {
+                        $item->update([
+                            'title' => $details['title'] ?? 'Unknown Movie',
+                            'poster_path' => $details['poster_path'] ?? null
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Failed to repair like metadata for {$item->movie_id}: " . $e->getMessage());
+                }
+            }
+        });
+
+        return response()->json($liked);
+    }
 }
