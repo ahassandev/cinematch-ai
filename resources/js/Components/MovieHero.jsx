@@ -24,6 +24,10 @@ export default function MovieHero({ movie, auth }) {
                                 src={movie.poster} 
                                 alt={movie.title} 
                                 className="w-full aspect-[2/3] object-cover"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = 'https://via.placeholder.com/500x750?text=No+Poster';
+                                }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>

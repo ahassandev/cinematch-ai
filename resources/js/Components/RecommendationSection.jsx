@@ -28,7 +28,7 @@ export default function RecommendationSection({ movieId }) {
                 matchType: r.ai_reason || 'type',
                 image: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster',
                 year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
-                matchScore: Math.max(75, 98 - index * 3)
+                matchScore: r.score || Math.max(75, 95 - index * 5)
             }));
 
             setRecommendations(mapped);

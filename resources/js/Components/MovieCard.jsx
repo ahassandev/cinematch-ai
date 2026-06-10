@@ -19,6 +19,10 @@ export default function MovieCard({ id, title, rating, genre, image, year, addit
                     alt={title} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     loading="lazy"
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://via.placeholder.com/500x750?text=No+Poster';
+                    }}
                 />
                 
                 {/* Multi-layered Dark Gradient Overlay */}

@@ -121,48 +121,90 @@ class MovieController extends Controller
     {
         $allRecs = [];
         $likedDirectors = [];
+        $likedGenreIds = [];
+        $likedKeywordIds = [];
 
         foreach ($baseMovies as $movie) {
-            $recs = $this->tmdb->getRecommendations($movie->movie_id);
-            $credits = $this->tmdb->getMovieCredits($movie->movie_id);
+            $details = $this->tmdb->getMovieDetails($movie->movie_id);
+            if (!$details) continue;
 
-            // Collect directors of movies the user likes
+            $credits = $this->tmdb->getMovieCredits($movie->movie_id);
+            $keywords = $this->tmdb->getMovieKeywords($movie->movie_id);
+
+            // Director
             $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
             if ($director) {
-                $likedDirectors[] = $director['name'];
+                $likedDirectors[$director['id']] = $director['name'];
             }
 
-            if (isset($recs['results'])) {
-                foreach ($recs['results'] as $r) {
-                    $recId = $r['id'];
-                    if (!isset($allRecs[$recId])) {
-                        $allRecs[$recId] = $r;
-                        $allRecs[$recId]['score'] = 10; // Base score for being a recommendation
-                    } else {
-                        $allRecs[$recId]['score'] += 10; // Bonus for being recommended by multiple liked movies
+            // Genres
+            foreach ($details['genres'] ?? [] as $g) {
+                $likedGenreIds[$g['id']] = $g['name'];
+            }
+
+            // Keywords (Storyline)
+            foreach ($keywords['keywords'] ?? [] as $kw) {
+                $likedKeywordIds[$kw['id']] = $kw['name'];
+            }
+
+            // --- Priority 1: Same Director ---
+            foreach ($likedDirectors as $did => $dname) {
+                $directorMovies = $this->tmdb->discoverMovies(['with_crew' => $did]);
+                foreach ($directorMovies['results'] ?? [] as $dm) {
+                    if ($dm['id'] == $movie->movie_id) continue;
+                    if (!isset($allRecs[$dm['id']])) {
+                        $allRecs[$dm['id']] = $dm;
+                        $allRecs[$dm['id']]['ai_director'] = $dname;
+                        $allRecs[$dm['id']]['ai_reason'] = "director";
+                        $allRecs[$dm['id']]['score'] = 98;
+                    }
+                }
+            }
+
+            // --- Priority 2: Same Genre + Keywords (Storyline) ---
+            if (count($allRecs) < 8) {
+                $discovery = $this->tmdb->discoverMovies([
+                    'with_genres' => implode(',', array_keys($likedGenreIds)),
+                    'with_keywords' => implode('|', array_slice(array_keys($likedKeywordIds), 0, 5))
+                ]);
+                foreach ($discovery['results'] ?? [] as $dm) {
+                    if ($dm['id'] == $movie->movie_id) continue;
+                    if (!isset($allRecs[$dm['id']])) {
+                        $allRecs[$dm['id']] = $dm;
+                        $allRecs[$dm['id']]['ai_reason'] = "story";
+                        $allRecs[$dm['id']]['score'] = 88;
+                    }
+                }
+            }
+
+            // --- Priority 3: Fallback (TMDB recommendations) ---
+            if (count($allRecs) < 12) {
+                $recs = $this->tmdb->getRecommendations($movie->movie_id);
+                foreach ($recs['results'] ?? [] as $r) {
+                    if (!isset($allRecs[$r['id']])) {
+                        $allRecs[$r['id']] = $r;
+                        $allRecs[$r['id']]['ai_reason'] = "type"; 
+                        $allRecs[$r['id']]['score'] = 78;
                     }
                 }
             }
         }
 
-        // Apply director-based bonus
-        foreach ($allRecs as &$rec) {
-            $recCredits = $this->tmdb->getMovieCredits($rec['id']);
-            $recDirector = collect($recCredits['crew'] ?? [])->firstWhere('job', 'Director');
+        $genreMap = [
+            28 => 'Action', 12 => 'Adventure', 16 => 'Animation', 35 => 'Comedy', 80 => 'Crime',
+            99 => 'Documentary', 18 => 'Drama', 10751 => 'Family', 14 => 'Fantasy', 36 => 'History',
+            27 => 'Horror', 10402 => 'Music', 9648 => 'Mystery', 10749 => 'Romance', 878 => 'Sci-Fi',
+            10770 => 'TV Movie', 53 => 'Thriller', 10752 => 'War', 37 => 'Western',
+        ];
 
-            if ($recDirector && in_array($recDirector['name'], $likedDirectors)) {
-                $rec['score'] += 50; // Massively boost movies by the same director
-                $rec['ai_reason'] = "Directed by " . $recDirector['name'];
-            }
+        foreach ($allRecs as &$rec) {
+            $rec['ai_genre_name'] = isset($rec['genre_ids'][0]) ? ($genreMap[$rec['genre_ids'][0]] ?? 'Movie') : 'Movie';
+            $rec['ai_description'] = isset($rec['overview']) ? mb_strimwidth($rec['overview'], 0, 110, '...') : '';
         }
 
-        // Sort by score
-        $sortedRecs = collect($allRecs)
-            ->sortByDesc('score')
-            ->take(20)
-            ->values();
-
-        return response()->json(['results' => $sortedRecs]);
+        return response()->json([
+            'results' => collect($allRecs)->sortByDesc('score')->values()->take(12)
+        ]);
     }
 
     public function getTrending(Request $request)

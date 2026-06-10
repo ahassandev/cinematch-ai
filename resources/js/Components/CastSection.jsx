@@ -54,6 +54,10 @@ export default function CastSection({ cast }) {
                                     alt={actor.name} 
                                     className="w-full h-full object-cover transform group-hover/card:scale-105 transition-transform duration-500"
                                     loading="lazy"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = 'https://via.placeholder.com/300x450?text=No+Photo';
+                                    }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                             </div>

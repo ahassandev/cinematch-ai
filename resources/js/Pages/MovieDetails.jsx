@@ -36,6 +36,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                         metadata: [
                             { label: isTv ? "First Air Date" : "Release Date", value: data.release_date || data.first_air_date },
                             ...(isTv ? [{ label: "Seasons", value: data.number_of_seasons }] : []),
+                            { label: "Director", value: data.credits && data.credits.crew ? (data.credits.crew.find(c => c.job === 'Director')?.name || 'N/A') : 'N/A' },
                             { label: "Status", value: data.status },
                             { label: "Original Language", value: data.original_language ? data.original_language.toUpperCase() : 'Unknown' }
                         ],
@@ -44,13 +45,28 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                             character: c.character,
                             image: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : 'https://via.placeholder.com/150'
                         })) : [],
-                        reviews: data.reviews && data.reviews.results ? data.reviews.results.slice(0, 4).map(r => ({
-                            username: r.author,
-                            avatar: r.author_details && r.author_details.avatar_path ? (r.author_details.avatar_path.startsWith('/') ? r.author_details.avatar_path.substring(1) : `https://image.tmdb.org/t/p/w185${r.author_details.avatar_path}`) : 'https://via.placeholder.com/150',
-                            rating: r.author_details && r.author_details.rating ? `${r.author_details.rating}/10` : 'N/A',
-                            date: new Date(r.created_at).toLocaleDateString(),
-                            comment: r.content.substring(0, 300) + (r.content.length > 300 ? '...' : '')
-                        })) : []
+                        reviews: data.reviews && data.reviews.results ? data.reviews.results.slice(0, 4).map(r => {
+                            let avatarUrl = 'https://via.placeholder.com/150?text=User';
+                            const path = r.author_details?.avatar_path;
+                            
+                            if (path) {
+                                if (path.startsWith('http')) {
+                                    avatarUrl = path;
+                                } else if (path.startsWith('/')) {
+                                    avatarUrl = `https://image.tmdb.org/t/p/w185${path}`;
+                                } else {
+                                    avatarUrl = `https://image.tmdb.org/t/p/w185/${path}`;
+                                }
+                            }
+
+                            return {
+                                username: r.author,
+                                avatar: avatarUrl,
+                                rating: r.author_details && r.author_details.rating ? `${r.author_details.rating}/10` : 'N/A',
+                                date: new Date(r.created_at).toLocaleDateString(),
+                                comment: r.content.substring(0, 300) + (r.content.length > 300 ? '...' : '')
+                            };
+                        }) : []
                     });
                     setLoading(false);
                 })

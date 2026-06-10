@@ -133,4 +133,14 @@ class TMDBService
             return $response->json();
         });
     }
+
+    public function getMovieKeywords($id)
+    {
+        return Cache::remember("tmdb_keywords_{$id}", 86400, function () use ($id) {
+            $response = Http::get("{$this->baseUrl}/movie/{$id}/keywords", [
+                'api_key' => $this->apiKey,
+            ]);
+            return $response->json();
+        });
+    }
 }
