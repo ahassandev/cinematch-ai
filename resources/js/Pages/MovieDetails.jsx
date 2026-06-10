@@ -35,7 +35,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                         overview: data.overview,
                         metadata: [
                             { label: isTv ? "First Air Date" : "Release Date", value: data.release_date || data.first_air_date },
-                            { label: isTv ? "Seasons" : "Budget", value: isTv ? data.number_of_seasons : (data.budget ? `$${(data.budget / 1000000).toFixed(1)} Million` : 'Unknown') },
+                            ...(isTv ? [{ label: "Seasons", value: data.number_of_seasons }] : []),
                             { label: "Status", value: data.status },
                             { label: "Original Language", value: data.original_language ? data.original_language.toUpperCase() : 'Unknown' }
                         ],

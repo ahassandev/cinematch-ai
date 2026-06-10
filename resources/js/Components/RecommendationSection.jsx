@@ -17,17 +17,20 @@ export default function RecommendationSection({ movieId }) {
         try {
             const res = await axios.get(`/api/movies/ai-recommendations/${movieId}`);
             const rawRecs = res.data.results || [];
-            
+
             const mapped = rawRecs.slice(0, 4).map((r, index) => ({
                 id: r.id,
                 title: r.title,
                 rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
-                genre: r.ai_reason || 'AI Match',
+                genre: r.ai_genre_name || 'Movie',
+                director: r.ai_director || null,
+                description: r.ai_description || null,
+                matchType: r.ai_reason || 'type',
                 image: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster',
                 year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
                 matchScore: Math.max(75, 98 - index * 3)
             }));
-            
+
             setRecommendations(mapped);
         } catch (err) {
             console.error("Failed to fetch recommendations:", err);

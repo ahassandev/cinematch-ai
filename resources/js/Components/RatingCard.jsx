@@ -40,9 +40,10 @@ export default function RatingCard({ movieId, genres = [], rating, auth }) {
     };
 
     // Determine display values
-    const matchScore = matchData?.match ?? 95; // default to 95 if no data
     const isNewGenre = matchData && matchData.match === null;
     const hasRealScore = matchData && matchData.match !== null;
+    const matchScore = hasRealScore ? matchData.match : null;
+    const noData = !auth?.user || (!loadingMatch && !isNewGenre && !hasRealScore);
 
     // Color based on score
     const scoreColor = matchScore >= 80
@@ -80,6 +81,11 @@ export default function RatingCard({ movieId, genres = [], rating, auth }) {
                     <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 rounded-full border border-white/10">
                         <span className="text-3xl">⭐</span>
                         <span className="text-[9px] uppercase tracking-widest text-purple-400 font-bold mt-1">New!</span>
+                    </div>
+                ) : noData ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 rounded-full border border-white/10">
+                        <span className="text-3xl font-black text-white/30">?</span>
+                        <span className="text-[9px] uppercase tracking-widest text-white/30 font-bold mt-1">No Data</span>
                     </div>
                 ) : (
                     <>

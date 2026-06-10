@@ -19,7 +19,7 @@ class MovieController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
-        
+
         if (empty($query)) {
             return response()->json(['error' => 'Query is required'], 400);
         }
@@ -95,7 +95,7 @@ class MovieController extends Controller
         }
 
         $favorites = \App\Models\Favorite::where('user_id', $user->id)->latest()->take(5)->get();
-        
+
         if ($favorites->isEmpty()) {
             $popular = $this->tmdb->getPopularMovies();
             $results = collect($popular['results'])->map(function($r) {
@@ -113,7 +113,7 @@ class MovieController extends Controller
         $movie = (object)[
             'movie_id' => $id
         ];
-        
+
         return $this->getAggregateRecommendations(collect([$movie]));
     }
 
@@ -125,7 +125,7 @@ class MovieController extends Controller
         foreach ($baseMovies as $movie) {
             $recs = $this->tmdb->getRecommendations($movie->movie_id);
             $credits = $this->tmdb->getMovieCredits($movie->movie_id);
-            
+
             // Collect directors of movies the user likes
             $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
             if ($director) {
@@ -149,7 +149,7 @@ class MovieController extends Controller
         foreach ($allRecs as &$rec) {
             $recCredits = $this->tmdb->getMovieCredits($rec['id']);
             $recDirector = collect($recCredits['crew'] ?? [])->firstWhere('job', 'Director');
-            
+
             if ($recDirector && in_array($recDirector['name'], $likedDirectors)) {
                 $rec['score'] += 50; // Massively boost movies by the same director
                 $rec['ai_reason'] = "Directed by " . $recDirector['name'];
