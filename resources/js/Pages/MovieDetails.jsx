@@ -66,7 +66,8 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                                 date: new Date(r.created_at).toLocaleDateString(),
                                 comment: r.content.substring(0, 300) + (r.content.length > 300 ? '...' : '')
                             };
-                        }) : []
+                        }) : [],
+                        trailerKey: data.videos && data.videos.results ? data.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key : null
                     });
                     setLoading(false);
                 })

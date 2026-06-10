@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import RecommendationCard from '@/Components/RecommendationCard';
 import AuthModal from '@/Components/AuthModal';
+import TrailerModal from '@/Components/TrailerModal';
 
 export default function ActionButtons({ movie, auth }) {
     const [inWatchlist, setInWatchlist] = useState(false);
@@ -10,6 +11,7 @@ export default function ActionButtons({ movie, auth }) {
     const [aiRecs, setAiRecs] = useState([]);
     const [loadingRecs, setLoadingRecs] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showTrailerModal, setShowTrailerModal] = useState(false);
 
     const toggleWatchlist = () => {
         if (!movie) return;
@@ -134,14 +136,25 @@ export default function ActionButtons({ movie, auth }) {
                 isOpen={showAuthModal} 
                 onClose={() => setShowAuthModal(false)} 
             />
+            <TrailerModal 
+                isOpen={showTrailerModal} 
+                onClose={() => setShowTrailerModal(false)} 
+                trailerKey={movie?.trailerKey}
+                title={movie?.title}
+            />
             <div className="flex flex-wrap items-center gap-3 md:gap-4">
-                <button className="px-6 py-3.5 md:py-4 rounded-xl text-sm md:text-base font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transform hover:-translate-y-1 transition-all flex items-center gap-3 flex-1 md:flex-none justify-center group relative overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                    <svg className="w-5 h-5 md:w-6 md:h-6 fill-current relative z-10" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                    <span className="relative z-10">Watch Trailer</span>
-                </button>
+                {movie?.trailerKey && (
+                    <button 
+                        onClick={() => setShowTrailerModal(true)}
+                        className="px-6 py-3.5 md:py-4 rounded-xl text-sm md:text-base font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transform hover:-translate-y-1 transition-all flex items-center gap-3 flex-1 md:flex-none justify-center group relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        <svg className="w-5 h-5 md:w-6 md:h-6 fill-current relative z-10" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span className="relative z-10">Watch Trailer</span>
+                    </button>
+                )}
                 
                 <button 
                     onClick={toggleWatchlist}
