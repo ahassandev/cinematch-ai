@@ -38,22 +38,7 @@ export default function HeroSection() {
                         Smart movie recommendations based on your taste, powered by intelligent matching and massive cinematic data. Let the algorithm find exactly what you're in the mood for.
                     </p>
                     
-                    <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
-                        <button className="px-8 py-4 rounded-xl text-base md:text-lg font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 transition-all shadow-[0_0_20px_rgba(220,38,38,0.3)] hover:shadow-[0_0_30px_rgba(220,38,38,0.5)] transform hover:-translate-y-1 flex justify-center items-center gap-3 group relative overflow-hidden">
-                            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] skew-x-12 group-hover:animate-shine"></span>
-                            <svg className="w-5 h-5 text-white/90 group-hover:text-white transition-colors relative z-10" fill="currentColor" viewBox="0 0 20 20">
-                                <path stroke="white" strokeWidth="0.5" d="M12.43 9.42l-5-2.85A1 1 0 006 7.42v5.16a1 1 0 001.43.87l5-2.85a1 1 0 000-1.74z" />
-                            </svg>
-                            <span className="relative z-10 tracking-wide">Explore Movies</span>
-                        </button>
-                        
-                        <button className="px-8 py-4 rounded-xl text-base md:text-lg font-bold text-white bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 transition-all hover:border-white/20 hover:-translate-y-1 flex justify-center items-center gap-2 group shadow-xl">
-                            <span className="relative z-10 tracking-wide">Get Recommendations</span>
-                            <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform text-purple-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </button>
-                    </div>
+
                 </div>
             </div>
             
