@@ -14,6 +14,10 @@ export default function Dashboard({ auth, stats }) {
         e.preventDefault();
         e.stopPropagation();
 
+        if (!window.confirm('Are you sure you want to delete this search history?')) {
+            return;
+        }
+
         try {
             await axios.delete(`/user/search-history/${id}`);
             setLocalRecentSearches(localRecentSearches.filter(s => s.id !== id));

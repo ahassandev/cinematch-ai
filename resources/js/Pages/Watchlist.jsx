@@ -25,6 +25,10 @@ export default function Watchlist({ auth }) {
     const removeMovie = (e, movie) => {
         e.preventDefault();
         
+        if (!window.confirm(`Are you sure you want to remove "${movie.title}" from your watchlist?`)) {
+            return;
+        }
+
         // Optimistic UI update
         const idToRemove = movie.id;
         setMovies(movies.filter(m => m.id !== idToRemove));
