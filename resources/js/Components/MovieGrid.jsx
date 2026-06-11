@@ -50,6 +50,9 @@ export default function MovieGrid({ title, subtitle, movies = [], loading = fals
                                 genre={movie.genre}
                                 image={movie.image}
                                 year={movie.year}
+                                inWatchlist={movie.inWatchlist}
+                                isLiked={movie.isLiked}
+                                isDisliked={movie.isDisliked}
                             />
                         </div>
                     ))}

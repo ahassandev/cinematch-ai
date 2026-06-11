@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 
-export default function MovieCard({ id, title, rating, genre, image, year, additionalClasses = "" }) {
+export default function MovieCard({ id, title, rating, genre, image, year, inWatchlist = false, isLiked = false, isDisliked = false, additionalClasses = "" }) {
     const detailsUrl = genre === 'TV Series' ? `/tv/${id}` : `/movie/${id}`;
 
     return (
@@ -43,6 +43,23 @@ export default function MovieCard({ id, title, rating, genre, image, year, addit
                     <div className="flex flex-col gap-1.5 items-end">
                         <div className="bg-black/40 backdrop-blur-xl px-2 py-1 rounded-md border border-white/10 group-hover:border-white/20 transition-colors">
                             <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">4K</span>
+                        </div>
+                        
+                        {/* Status Interaction Badges */}
+                        <div className="flex flex-col gap-1.5">
+                            {/* Watchlist Badge */}
+                            <div className={`transition-all duration-300 bg-black/40 backdrop-blur-xl p-2 rounded-md border border-white/10 group-hover:translate-x-0 translate-x-2 opacity-0 group-hover:opacity-100 flex items-center justify-center ${inWatchlist ? '!opacity-100 !translate-x-0 !border-purple-500/50 !bg-purple-600/30' : ''}`}>
+                                <svg className={`w-3.5 h-3.5 ${inWatchlist ? 'text-purple-400' : 'text-gray-400'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+
+                            {/* Like/Favorite Badge */}
+                            <div className={`transition-all duration-300 bg-black/40 backdrop-blur-xl p-2 rounded-md border border-white/10 group-hover:translate-x-0 translate-x-3 opacity-0 group-hover:opacity-100 flex items-center justify-center delay-75 ${isLiked ? '!opacity-100 !translate-x-0 !border-blue-500/50 !bg-blue-600/30' : ''}`}>
+                                <svg className={`w-3.5 h-3.5 ${isLiked ? 'text-blue-400 fill-current' : 'text-gray-400 fill-transparent'}`} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
                 </div>

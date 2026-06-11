@@ -20,8 +20,15 @@ export default function Home({ auth }) {
     const [activeFilters, setActiveFilters] = useState({ genre: '', year: '', rating: '' });
     const [isFiltering, setIsFiltering] = useState(false);
 
-    // Load popular movies on first render for the default "Trending" section
+    // Load popular movies or handle auto-search from URL param
     useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryParam = urlParams.get('q');
+
+        if (queryParam) {
+            handleSearch(queryParam);
+        }
+
         axios.get('/api/movies/popular')
             .then(res => {
                 const results = res.data.results || [];
@@ -33,7 +40,10 @@ export default function Home({ auth }) {
                     image: r.poster_path
                         ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
                         : 'https://via.placeholder.com/500x750?text=No+Poster',
-                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A'
+                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
+                    inWatchlist: r.in_watchlist,
+                    isLiked: r.is_liked,
+                    isDisliked: r.is_disliked
                 }));
                 setPopularMovies(mapped);
                 setLoadingPopular(false);
@@ -64,7 +74,10 @@ export default function Home({ auth }) {
                         image: r.poster_path
                             ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
                             : 'https://via.placeholder.com/500x750?text=No+Poster',
-                        year: r.release_date ? r.release_date.substring(0, 4) : 'N/A'
+                        year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
+                        inWatchlist: r.in_watchlist,
+                        isLiked: r.is_liked,
+                        isDisliked: r.is_disliked
                     }));
                     setPopularMovies(mapped);
                     setLoadingPopular(false);
@@ -94,7 +107,10 @@ export default function Home({ auth }) {
                     image: r.poster_path
                         ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
                         : 'https://via.placeholder.com/500x750?text=No+Poster',
-                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A'
+                    year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
+                    inWatchlist: r.in_watchlist,
+                    isLiked: r.is_liked,
+                    isDisliked: r.is_disliked
                 }));
                 setPopularMovies(mapped);
                 setLoadingPopular(false);
@@ -130,7 +146,10 @@ export default function Home({ auth }) {
                         image: r.poster_path
                             ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
                             : 'https://via.placeholder.com/500x750?text=No+Poster',
-                        year: (r.release_date || r.first_air_date || '').substring(0, 4) || 'N/A'
+                        year: (r.release_date || r.first_air_date || '').substring(0, 4) || 'N/A',
+                        inWatchlist: r.in_watchlist,
+                        isLiked: r.is_liked,
+                        isDisliked: r.is_disliked
                     }));
                 setSearchResults(mapped);
                 setIsSearching(false);

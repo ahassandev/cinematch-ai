@@ -67,7 +67,7 @@ export default function Dashboard({ auth, stats }) {
                                 localRecentSearches.map((search, i) => (
                                     <div key={search.id || i} className="group/item relative">
                                         <Link
-                                            href={`/movies?q=${encodeURIComponent(search.query)}`}
+                                            href={`/?q=${encodeURIComponent(search.query)}`}
                                             className="px-4 py-2 bg-[#0a0a0f] border border-white/5 rounded-full text-sm text-gray-300 hover:bg-white/5 hover:border-purple-500/30 hover:text-purple-300 transition-all cursor-pointer flex items-center gap-2 pr-8"
                                         >
                                             🔍 {search.query}
@@ -135,7 +135,7 @@ export default function Dashboard({ auth, stats }) {
                                 <div className="flex flex-col items-center justify-center py-8 text-center">
                                     <div className="text-4xl mb-3">🎬</div>
                                     <p className="text-gray-500 italic text-sm">No movies saved yet.</p>
-                                    <Link href="/movies" className="mt-3 text-purple-400 text-sm font-bold hover:text-purple-300 transition-colors">
+                                    <Link href="/" className="mt-3 text-purple-400 text-sm font-bold hover:text-purple-300 transition-colors">
                                         Discover Movies →
                                     </Link>
                                 </div>

@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/user/watchlist-data', [\App\Http\Controllers\Api\UserActivityController::class, 'indexWatchlist']);
     Route::get('/user/disliked-data', [\App\Http\Controllers\Api\UserActivityController::class, 'indexDisliked']);
     Route::get('/user/liked-data', [\App\Http\Controllers\Api\UserActivityController::class, 'indexLiked']);
+    Route::get('/user/movie-status/{id}', [\App\Http\Controllers\Api\UserActivityController::class, 'getMovieStatus']);
     Route::post('/user/watchlist/toggle', [\App\Http\Controllers\Api\UserActivityController::class, 'toggleWatchlist']);
     Route::post('/user/favorites/toggle', [\App\Http\Controllers\Api\UserActivityController::class, 'toggleFavorite']);
     Route::post('/user/feedback', [\App\Http\Controllers\Api\UserActivityController::class, 'leaveFeedback']);

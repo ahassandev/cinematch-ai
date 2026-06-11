@@ -33,12 +33,56 @@ class MovieController extends Controller
         }
 
         $results = $this->tmdb->searchMovies($query);
+        
+        if (auth()->check() && isset($results['results'])) {
+            $userId = auth()->id();
+            $movieIds = collect($results['results'])->pluck('id');
+            
+            $watchlistIds = \App\Models\Watchlist::where('user_id', $userId)
+                ->whereIn('movie_id', $movieIds)
+                ->pluck('movie_id')
+                ->toArray();
+                
+            $feedback = \App\Models\MovieFeedback::where('user_id', $userId)
+                ->whereIn('movie_id', $movieIds)
+                ->get()
+                ->keyBy('movie_id');
+
+            foreach ($results['results'] as &$movie) {
+                $movie['in_watchlist'] = in_array($movie['id'], $watchlistIds);
+                $movie['is_liked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'like';
+                $movie['is_disliked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'dislike';
+            }
+        }
+
         return response()->json($results);
     }
 
     public function popular()
     {
         $results = $this->tmdb->getPopularMovies();
+
+        if (auth()->check() && isset($results['results'])) {
+            $userId = auth()->id();
+            $movieIds = collect($results['results'])->pluck('id');
+            
+            $watchlistIds = \App\Models\Watchlist::where('user_id', $userId)
+                ->whereIn('movie_id', $movieIds)
+                ->pluck('movie_id')
+                ->toArray();
+                
+            $feedback = \App\Models\MovieFeedback::where('user_id', $userId)
+                ->whereIn('movie_id', $movieIds)
+                ->get()
+                ->keyBy('movie_id');
+
+            foreach ($results['results'] as &$movie) {
+                $movie['in_watchlist'] = in_array($movie['id'], $watchlistIds);
+                $movie['is_liked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'like';
+                $movie['is_disliked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'dislike';
+            }
+        }
+
         return response()->json($results);
     }
 

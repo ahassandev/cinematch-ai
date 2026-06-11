@@ -12,6 +12,21 @@ export default function ActionButtons({ movie, auth }) {
     const [loadingRecs, setLoadingRecs] = useState(false);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showTrailerModal, setShowTrailerModal] = useState(false);
+    const [loadingStatus, setLoadingStatus] = useState(false);
+
+    React.useEffect(() => {
+        if (!movie?.id || !auth?.user) return;
+
+        setLoadingStatus(true);
+        axios.get(`/user/movie-status/${movie.id}`)
+            .then(res => {
+                setInWatchlist(res.data.in_watchlist);
+                setInFavorites(res.data.is_liked);
+                setIsDisliked(res.data.is_disliked);
+            })
+            .catch(err => console.error("Failed to fetch movie status", err))
+            .finally(() => setLoadingStatus(false));
+    }, [movie?.id, auth?.user]);
 
     const toggleWatchlist = () => {
         if (!movie) return;

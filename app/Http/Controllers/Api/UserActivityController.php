@@ -220,4 +220,25 @@ class UserActivityController extends Controller
 
         return response()->json($liked);
     }
+
+    public function getMovieStatus($id)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'in_watchlist' => false,
+                'is_liked' => false,
+                'is_disliked' => false
+            ]);
+        }
+
+        $inWatchlist = Watchlist::where('user_id', $user->id)->where('movie_id', $id)->exists();
+        $feedback = MovieFeedback::where('user_id', $user->id)->where('movie_id', $id)->first();
+
+        return response()->json([
+            'in_watchlist' => $inWatchlist,
+            'is_liked' => $feedback ? $feedback->type === 'like' : false,
+            'is_disliked' => $feedback ? $feedback->type === 'dislike' : false
+        ]);
+    }
 }
