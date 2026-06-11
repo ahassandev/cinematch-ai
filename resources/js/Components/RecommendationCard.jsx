@@ -30,25 +30,7 @@ export default function RecommendationCard({ id, title, rating, genre, director,
                     </div>
                 </div>
 
-                {/* Director & Genre Tags - Top Left (Hover) */}
-                <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
-                    {director && (
-                        <div className="bg-purple-600/90 backdrop-blur-md px-2 py-1 rounded-md border border-purple-400/30 text-[10px] font-bold text-white shadow-lg flex items-center gap-1">
-                            <svg className="w-3 h-3 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            {director}
-                        </div>
-                    )}
-                    <div className="bg-blue-600/90 backdrop-blur-md px-2 py-1 rounded-md border border-blue-400/30 text-[10px] font-bold text-white shadow-lg flex items-center gap-1">
-                        <svg className="w-3 h-3 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        {genre || 'Movie'}
-                    </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 w-full p-5 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300 ease-out">
+                <div className="absolute bottom-0 left-0 w-full p-5 z-20 transform group-hover:translate-y-0 transition-transform duration-300 ease-out">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                         {year && (
                             <span className="text-[11px] font-bold text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-sm tracking-wider">{year}</span>
@@ -59,15 +41,26 @@ export default function RecommendationCard({ id, title, rating, genre, director,
                         </span>
                     </div>
 
-                    <h3 className="text-white font-bold text-xl leading-snug line-clamp-1 group-hover:line-clamp-2 transition-all drop-shadow-md mb-1.5">
+                    <h3 className="text-white font-bold text-xl leading-snug line-clamp-1 group-hover:line-clamp-2 transition-all drop-shadow-md mb-2">
                         {title}
                     </h3>
                     
-                    {description && (
-                         <p className="text-gray-300 text-[11px] leading-relaxed line-clamp-2 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-75 transform translate-y-2 group-hover:translate-y-0">
-                            {description}
-                        </p>
-                    )}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {director && (
+                            <div className="bg-purple-600/80 backdrop-blur-md px-2 py-1 rounded-md border border-purple-400/20 text-[9px] font-bold text-white shadow-lg flex items-center gap-1 uppercase tracking-tighter">
+                                <svg className="w-2.5 h-2.5 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {director}
+                            </div>
+                        )}
+                        <div className="bg-blue-600/80 backdrop-blur-md px-2 py-1 rounded-md border border-blue-400/20 text-[9px] font-bold text-white shadow-lg flex items-center gap-1 uppercase tracking-tighter">
+                            <svg className="w-2.5 h-2.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            {genre || 'Movie'}
+                        </div>
+                    </div>
                 </div>
             </div>
         </Link>

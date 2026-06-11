@@ -4,10 +4,7 @@ import Navbar from '@/Components/Navbar';
 import MovieHero from '@/Components/MovieHero';
 import MovieInfo from '@/Components/MovieInfo';
 import RatingCard from '@/Components/RatingCard';
-import TrailerSection from '@/Components/TrailerSection';
 import CastSection from '@/Components/CastSection';
-import RecommendationSection from '@/Components/RecommendationSection';
-import ReviewCard from '@/Components/ReviewCard';
 import Footer from '@/Components/Footer';
 import axios from 'axios';
 
@@ -117,39 +114,8 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                     </div>
                 </div>
 
-                <TrailerSection backdrop={movieData.backdrop} />
-
                 <CastSection cast={movieData.cast} />
 
-                <section className="py-16 relative z-10 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between mb-10">
-                        <h2 className="text-2xl font-bold text-white uppercase tracking-widest flex items-center gap-3">
-                            <span className="w-1.5 h-6 bg-red-600 rounded-full"></span>
-                            Member Reviews
-                        </h2>
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {movieData.reviews.length > 0 ? movieData.reviews.map((review, idx) => (
-                            <ReviewCard 
-                                key={idx}
-                                avatar={review.avatar}
-                                username={review.username}
-                                rating={review.rating}
-                                date={review.date}
-                                comment={review.comment}
-                            />
-                        )) : (
-                            <div className="col-span-2 text-gray-500 italic py-8">
-                                No reviews available for this movie yet.
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <div className="mt-8 relative z-20">
-                    <RecommendationSection movieId={movieData.id} />
-                </div>
             </main>
             
             <Footer />

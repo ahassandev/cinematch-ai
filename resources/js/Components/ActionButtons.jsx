@@ -42,7 +42,8 @@ export default function ActionButtons({ movie, auth }) {
                 id: r.id,
                 title: r.title,
                 rating: r.vote_average ? r.vote_average.toFixed(1) : 'NR',
-                genre: r.ai_reason || 'AI Match',
+                genre: r.ai_genre_name || 'Movie',
+                director: r.ai_director || 'N/A',
                 image: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster',
                 year: r.release_date ? r.release_date.substring(0, 4) : 'N/A',
                 matchScore: Math.max(75, 98 - index * 4)

@@ -202,8 +202,20 @@ class MovieController extends Controller
             $rec['ai_description'] = isset($rec['overview']) ? mb_strimwidth($rec['overview'], 0, 110, '...') : '';
         }
 
+        $limitedRecs = collect($allRecs)->sortByDesc('score')->values()->take(12);
+
+        // Fetch director for each of the limited recommendations if not already present
+        $finalResults = $limitedRecs->map(function($rec) {
+            if (!isset($rec['ai_director'])) {
+                $credits = $this->tmdb->getMovieCredits($rec['id']);
+                $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
+                $rec['ai_director'] = $director ? $director['name'] : null;
+            }
+            return $rec;
+        });
+
         return response()->json([
-            'results' => collect($allRecs)->sortByDesc('score')->values()->take(12)
+            'results' => $finalResults
         ]);
     }
 
