@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import MovieHero from '@/Components/MovieHero';
 import MovieInfo from '@/Components/MovieInfo';
-import RatingCard from '@/Components/RatingCard';
+
 import CastSection from '@/Components/CastSection';
 import Footer from '@/Components/Footer';
 import axios from 'axios';
@@ -108,9 +108,7 @@ export default function MovieDetails({ auth, id, type = 'movie' }) {
                         <div className="flex-1 w-full">
                             <MovieInfo overview={movieData.overview} metadata={movieData.metadata} />
                         </div>
-                        <div className="w-full xl:w-[450px] shrink-0 xl:mt-12">
-                            <RatingCard movieId={movieData.id} genres={movieData.genres} rating={movieData.rating} auth={auth} />
-                        </div>
+
                     </div>
                 </div>
 

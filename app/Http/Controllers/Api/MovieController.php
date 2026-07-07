@@ -147,6 +147,11 @@ class MovieController extends Controller
             ->take(5)
             ->get();
 
+        // Get all interacted movies to exclude them
+        $interactedMovieIds = \App\Models\MovieFeedback::where('user_id', $user->id)
+            ->pluck('movie_id')
+            ->toArray();
+
         // No likes yet — return popular movies with label
         if ($likedMovies->isEmpty()) {
             $popular = $this->tmdb->getPopularMovies();
@@ -158,7 +163,7 @@ class MovieController extends Controller
             return response()->json(['results' => $results]);
         }
 
-        return $this->getAggregateRecommendations($likedMovies);
+        return $this->getAggregateRecommendations($likedMovies, $interactedMovieIds);
     }
 
     public function getMovieAIRecommendations($id)
@@ -167,10 +172,17 @@ class MovieController extends Controller
             'movie_id' => $id
         ];
 
-        return $this->getAggregateRecommendations(collect([$movie]));
+        $interactedMovieIds = [];
+        if (auth()->check()) {
+            $interactedMovieIds = \App\Models\MovieFeedback::where('user_id', auth()->id())
+                ->pluck('movie_id')
+                ->toArray();
+        }
+
+        return $this->getAggregateRecommendations(collect([$movie]), $interactedMovieIds);
     }
 
-    protected function getAggregateRecommendations($baseMovies)
+    protected function getAggregateRecommendations($baseMovies, $excludeMovieIds = [])
     {
         $allRecs = [];
         $likedDirectors = [];
@@ -207,8 +219,9 @@ class MovieController extends Controller
         foreach ($likedDirectors as $did => $dname) {
             $directorMovies = $this->tmdb->discoverMovies(['with_crew' => $did]);
             foreach ($directorMovies['results'] ?? [] as $dm) {
-                // Skip if it's already one of the base movies
+                // Skip if it's already one of the base movies or if it was interacted with
                 if ($baseMovies->contains('movie_id', $dm['id'])) continue;
+                if (in_array($dm['id'], $excludeMovieIds)) continue;
 
                 if (!isset($allRecs[$dm['id']])) {
                     $allRecs[$dm['id']] = $dm;
@@ -227,6 +240,7 @@ class MovieController extends Controller
             ]);
             foreach ($discovery['results'] ?? [] as $dm) {
                 if ($baseMovies->contains('movie_id', $dm['id'])) continue;
+                if (in_array($dm['id'], $excludeMovieIds)) continue;
 
                 if (!isset($allRecs[$dm['id']])) {
                     $allRecs[$dm['id']] = $dm;
@@ -242,6 +256,7 @@ class MovieController extends Controller
                 $recs = $this->tmdb->getRecommendations($movie->movie_id);
                 foreach ($recs['results'] ?? [] as $r) {
                     if ($baseMovies->contains('movie_id', $r['id'])) continue;
+                    if (in_array($r['id'], $excludeMovieIds)) continue;
 
                     if (!isset($allRecs[$r['id']])) {
                         $allRecs[$r['id']] = $r;
