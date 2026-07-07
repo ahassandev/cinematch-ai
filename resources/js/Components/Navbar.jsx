@@ -17,23 +17,23 @@ export default function Navbar({ auth }) {
     }, []);
 
     return (
-        <nav 
+        <nav
             className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-                scrolled 
-                    ? 'bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)]' 
+                scrolled
+                    ? 'bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)]'
                     : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent py-6'
             }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center transition-all duration-300">
-                    
+
                     {/* Main Menu Links & Logo */}
                     <div className="flex items-center gap-12">
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-3 group relative">
                             {/* Logo Glow Behind */}
                             <div className="absolute inset-0 bg-red-600/20 blur-xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            
+
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.4)] group-hover:shadow-[0_0_30px_rgba(220,38,38,0.8)] transition-all z-10 border border-red-500/30">
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
@@ -53,7 +53,7 @@ export default function Navbar({ auth }) {
                                     {item.name}
                                 </Link>
                             ))}
-                            
+
                             <Link href="/recommendations" className="px-4 py-2 flex items-center gap-2 rounded-full relative group overflow-hidden">
                                 <div className={`absolute inset-0 bg-purple-500/10 rounded-full transition-opacity ${url === '/recommendations' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
                                 <span className={`font-semibold tracking-wide text-sm relative z-10 transition-all group-hover:brightness-125 ${url === '/recommendations' ? 'text-white' : 'text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400'}`}>
@@ -69,7 +69,7 @@ export default function Navbar({ auth }) {
 
                     {/* Right side buttons */}
                     <div className="hidden lg:flex items-center space-x-4">
-                        
+
                         <div className="w-px h-6 bg-white/10 mx-2"></div>
 
                         {auth?.user ? (
@@ -130,7 +130,7 @@ export default function Navbar({ auth }) {
 
                     {/* Mobile Hamburger Button */}
                     <div className="lg:hidden flex items-center gap-4">
-                        <button 
+                        <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="bg-white/5 backdrop-blur-md p-2.5 rounded-xl border border-white/10 text-gray-300 hover:text-white transition-colors"
                         >
@@ -157,7 +157,7 @@ export default function Navbar({ auth }) {
                                 {item.name}
                             </Link>
                         ))}
-                        
+
                         <Link href="/recommendations" className="px-4 py-3 rounded-xl hover:bg-white/5 font-semibold text-lg transition-colors flex items-center justify-between border-l-2 border-transparent hover:border-purple-500 group">
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400 group-hover:brightness-125">Recommendations</span>
                             <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,1)]"></span>
@@ -168,17 +168,17 @@ export default function Navbar({ auth }) {
                             <Link href="/liked" className="py-2 text-gray-300 hover:text-white font-semibold transition-colors">Liked</Link>
                             <Link href="/disliked" className="py-2 text-gray-300 hover:text-white font-semibold transition-colors">Disliked</Link>
                         </div>
-                        
+
                         <div className="h-px bg-white/5 my-4"></div>
-                        
+
                         <div className="flex flex-col gap-3">
                             {auth?.user ? (
                                 <>
                                     {isDashboard ? (
-                                        <Link 
-                                            href={route('logout')} 
-                                            method="post" 
-                                            as="button" 
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
                                             className="w-full text-center px-4 py-3 rounded-xl text-red-400 font-bold bg-red-500/10 border border-red-500/20"
                                         >
                                             Log Out

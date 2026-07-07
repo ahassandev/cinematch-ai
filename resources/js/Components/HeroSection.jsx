@@ -5,12 +5,12 @@ export default function HeroSection() {
             <div className="absolute inset-0 w-full h-full bg-[#050505] z-0">
                 {/* Background Poster/Image Matrix */}
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat opacity-20 mix-blend-luminosity brightness-50"></div>
-                
+
                 {/* Dynamic Gradients */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/70 to-transparent"></div>
                 <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/50 to-[#050505]/90"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/80 via-transparent to-transparent"></div>
-                
+
                 {/* Ambient glow blobs beneath the text */}
                 <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] bg-red-600/15 rounded-full blur-[120px] mix-blend-screen opacity-60 animate-pulse" style={{ animationDuration: '8s' }}></div>
                 <div className="absolute bottom-1/4 right-1/4 w-[35vw] h-[35vw] max-w-[500px] max-h-[500px] bg-blue-600/15 rounded-full blur-[120px] mix-blend-screen opacity-60 animate-pulse" style={{ animationDuration: '10s' }}></div>
@@ -33,15 +33,15 @@ export default function HeroSection() {
                         </span> <br />
                         with AI.
                     </h1>
-                    
+
                     <p className="text-lg md:text-xl text-gray-400 font-medium max-w-2xl mb-12 leading-relaxed drop-shadow-sm">
                         Smart movie recommendations based on your taste, powered by intelligent matching and massive cinematic data. Let the algorithm find exactly what you're in the mood for.
                     </p>
-                    
+
 
                 </div>
             </div>
-            
+
             {/* Bottom fading edge matching page background */}
             <div className="absolute bottom-0 w-full h-40 bg-gradient-to-t from-[#050505] to-transparent z-10 pointer-events-none"></div>
 

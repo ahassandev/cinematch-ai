@@ -9,7 +9,7 @@ export default function SearchBar({ onSearch }) {
         if (!query.trim()) return;
 
         setIsSearching(true);
-        
+
         // Pass query up if callback exists
         if (onSearch) {
             onSearch(query);
@@ -24,7 +24,7 @@ export default function SearchBar({ onSearch }) {
     return (
         <section className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 mb-24">
             <div className="bg-[#1a1a24]/60 p-2 md:p-3 rounded-[2rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl relative overflow-hidden group hover:border-white/20 hover:shadow-[0_20px_60px_rgba(0,0,0,0.8)] transition-all duration-500">
-                
+
                 {/* Search Form */}
                 <form onSubmit={handleSearch} className="relative z-10 flex flex-col md:flex-row items-center gap-2">
                     <div className="flex-1 w-full relative flex items-center bg-[#0a0a0f]/50 rounded-[1.5rem] p-1 border border-transparent focus-within:border-white/10 transition-colors">
@@ -33,23 +33,23 @@ export default function SearchBar({ onSearch }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search any movie like Interstellar, Avatar, Joker..." 
+                            placeholder="Search any movie"
                             className="w-full bg-transparent border-none text-white placeholder-gray-600 pl-2 pr-6 py-4 focus:ring-0 focus:outline-none text-lg md:text-xl"
                         />
                     </div>
-                    
-                    <button 
-                        type="submit" 
+
+                    <button
+                        type="submit"
                         disabled={isSearching}
                         className="w-full md:w-auto px-10 py-5 h-full rounded-[1.5rem] font-bold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 shadow-lg shadow-purple-500/20 transition-all transform hover:scale-[1.02] flex justify-center items-center gap-3 disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed group/btn overflow-hidden relative"
                     >
                         {/* Button internal glow */}
                         <div className="absolute inset-0 w-full h-full bg-white opacity-0 group-hover/btn:opacity-20 transition-opacity"></div>
-                        
+
                         {isSearching ? (
                             <>
                                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

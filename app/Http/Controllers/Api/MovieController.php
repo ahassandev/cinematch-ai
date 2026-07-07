@@ -133,23 +133,32 @@ class MovieController extends Controller
     public function getPersonalizedRecommendations(Request $request)
     {
         $user = auth()->user();
+
+        // No user — return popular movies
         if (!$user) {
             $popular = $this->tmdb->getPopularMovies();
             return response()->json($popular);
         }
 
-        $favorites = \App\Models\Favorite::where('user_id', $user->id)->latest()->take(5)->get();
+        // Get last 5 liked movies
+        $likedMovies = \App\Models\MovieFeedback::where('user_id', $user->id)
+            ->where('type', 'like')
+            ->latest()
+            ->take(5)
+            ->get();
 
-        if ($favorites->isEmpty()) {
+        // No likes yet — return popular movies with label
+        if ($likedMovies->isEmpty()) {
             $popular = $this->tmdb->getPopularMovies();
-            $results = collect($popular['results'])->map(function($r) {
-                $r['ai_reason'] = "Popular Pick";
+            $results = collect($popular['results'] ?? [])->map(function ($r) {
+                $r['ai_reason'] = 'popular';
+                $r['score'] = 70;
                 return $r;
             });
             return response()->json(['results' => $results]);
         }
 
-        return $this->getAggregateRecommendations($favorites);
+        return $this->getAggregateRecommendations($likedMovies);
     }
 
     public function getMovieAIRecommendations($id)
@@ -190,41 +199,50 @@ class MovieController extends Controller
             foreach ($keywords['keywords'] ?? [] as $kw) {
                 $likedKeywordIds[$kw['id']] = $kw['name'];
             }
+        }
 
-            // --- Priority 1: Same Director ---
-            foreach ($likedDirectors as $did => $dname) {
-                $directorMovies = $this->tmdb->discoverMovies(['with_crew' => $did]);
-                foreach ($directorMovies['results'] ?? [] as $dm) {
-                    if ($dm['id'] == $movie->movie_id) continue;
-                    if (!isset($allRecs[$dm['id']])) {
-                        $allRecs[$dm['id']] = $dm;
-                        $allRecs[$dm['id']]['ai_director'] = $dname;
-                        $allRecs[$dm['id']]['ai_reason'] = "director";
-                        $allRecs[$dm['id']]['score'] = 98;
-                    }
+        // Now that we have all directors, genres, and keywords from all base movies, make the discovery calls ONCE per item
+        
+        // --- Priority 1: Same Director ---
+        foreach ($likedDirectors as $did => $dname) {
+            $directorMovies = $this->tmdb->discoverMovies(['with_crew' => $did]);
+            foreach ($directorMovies['results'] ?? [] as $dm) {
+                // Skip if it's already one of the base movies
+                if ($baseMovies->contains('movie_id', $dm['id'])) continue;
+
+                if (!isset($allRecs[$dm['id']])) {
+                    $allRecs[$dm['id']] = $dm;
+                    $allRecs[$dm['id']]['ai_director'] = $dname;
+                    $allRecs[$dm['id']]['ai_reason'] = "director";
+                    $allRecs[$dm['id']]['score'] = 98;
                 }
             }
+        }
 
-            // --- Priority 2: Same Genre + Keywords (Storyline) ---
-            if (count($allRecs) < 8) {
-                $discovery = $this->tmdb->discoverMovies([
-                    'with_genres' => implode(',', array_keys($likedGenreIds)),
-                    'with_keywords' => implode('|', array_slice(array_keys($likedKeywordIds), 0, 5))
-                ]);
-                foreach ($discovery['results'] ?? [] as $dm) {
-                    if ($dm['id'] == $movie->movie_id) continue;
-                    if (!isset($allRecs[$dm['id']])) {
-                        $allRecs[$dm['id']] = $dm;
-                        $allRecs[$dm['id']]['ai_reason'] = "story";
-                        $allRecs[$dm['id']]['score'] = 88;
-                    }
+        // --- Priority 2: Same Genre + Keywords (Storyline) ---
+        if (count($allRecs) < 12 && !empty($likedGenreIds)) {
+            $discovery = $this->tmdb->discoverMovies([
+                'with_genres' => implode(',', array_slice(array_keys($likedGenreIds), 0, 3)),
+                'with_keywords' => implode('|', array_slice(array_keys($likedKeywordIds), 0, 3))
+            ]);
+            foreach ($discovery['results'] ?? [] as $dm) {
+                if ($baseMovies->contains('movie_id', $dm['id'])) continue;
+
+                if (!isset($allRecs[$dm['id']])) {
+                    $allRecs[$dm['id']] = $dm;
+                    $allRecs[$dm['id']]['ai_reason'] = "story";
+                    $allRecs[$dm['id']]['score'] = 88;
                 }
             }
+        }
 
-            // --- Priority 3: Fallback (TMDB recommendations) ---
-            if (count($allRecs) < 12) {
+        // --- Priority 3: Fallback (TMDB recommendations) ---
+        if (count($allRecs) < 16) {
+            foreach ($baseMovies as $movie) {
                 $recs = $this->tmdb->getRecommendations($movie->movie_id);
                 foreach ($recs['results'] ?? [] as $r) {
+                    if ($baseMovies->contains('movie_id', $r['id'])) continue;
+
                     if (!isset($allRecs[$r['id']])) {
                         $allRecs[$r['id']] = $r;
                         $allRecs[$r['id']]['ai_reason'] = "type"; 

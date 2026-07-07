@@ -168,7 +168,6 @@ export default function Home({ auth }) {
 
             <main className="w-full relative z-0 flex flex-col items-center">
                 <HeroSection />
-
                 {/* Search Interaction Flow */}
                 <div className="w-full relative z-20" id="search-section">
                     <SearchBar onSearch={handleSearch} />
@@ -178,7 +177,7 @@ export default function Home({ auth }) {
                     {!hasSearched ? (
                         <>
                             <FilterBar onFilterChange={handleFilterChange} />
-                            
+
                             <MovieGrid
                                 title={isFiltering || activeFilters.genre || activeFilters.year || activeFilters.rating ? "Filtered Results" : "Trending Movies"}
                                 movies={popularMovies}

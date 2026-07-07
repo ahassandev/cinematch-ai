@@ -30,7 +30,7 @@ export default function LikedMovies({ auth }) {
         setMovies(movies.filter(m => m.id !== idToRemove));
 
         // API call to remove feedback
-        axios.post('/api/user/feedback/remove', {
+        axios.post('/user/feedback/remove', {
             movie_id: movie.movie_id
         }).catch(err => {
             console.error("Failed to remove like feedback", err);

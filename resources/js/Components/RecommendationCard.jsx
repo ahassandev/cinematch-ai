@@ -23,12 +23,8 @@ export default function RecommendationCard({ id, title, rating, genre, director,
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-[#050505]/60 via-transparent to-transparent opacity-50"></div>
 
-                {/* Match Score - Prominent Badge */}
-                <div className="absolute top-3 right-3 z-20">
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 rounded-lg text-xs font-black text-white shadow-[0_5px_15px_rgba(16,185,129,0.4)] border border-white/20 whitespace-nowrap transform group-hover:scale-105 transition-transform">
-                        {matchScore}% Match
-                    </div>
-                </div>
+
+
 
                 <div className="absolute bottom-0 left-0 w-full p-5 z-20 transform group-hover:translate-y-0 transition-transform duration-300 ease-out">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">

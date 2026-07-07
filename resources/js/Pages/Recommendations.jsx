@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 import SearchBar from '@/Components/SearchBar';
@@ -10,16 +10,21 @@ export default function Recommendations({ auth }) {
     const [loading, setLoading] = useState(true);
     const [personalizedRecs, setPersonalizedRecs] = useState([]);
     const [error, setError] = useState('');
+    const { url } = usePage();
 
     useEffect(() => {
-        fetchPersonalized();
-    }, [auth.user]);
+        if (auth?.user) {
+            fetchPersonalized();
+        } else {
+            setLoading(false);
+        }
+    }, [url, auth?.user]);
 
     const fetchPersonalized = async () => {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.get('/api/movies/personalized');
+            const res = await axios.get('/user/personalized-recs');
             const rawRecs = res.data.results || [];
             
             const mapped = rawRecs.map((r, index) => ({
@@ -95,21 +100,36 @@ export default function Recommendations({ auth }) {
                                     <RecommendationCard key={movie.id} {...movie} />
                                 ))}
                             </div>
+                        ) : !auth?.user ? (
+                            <div className="text-center py-24 bg-white/5 rounded-[2rem] border border-white/10 px-6 backdrop-blur-md">
+                                <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-purple-500/20 shadow-2xl">
+                                    <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold mb-3">Login Required</h3>
+                                <p className="text-gray-400 max-w-sm mx-auto mb-10 leading-relaxed text-lg">Please login to get personalized AI recommendations based on your liked movies.</p>
+                                <a href="/login" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-xl">
+                                    Login
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+                                </a>
+                            </div>
                         ) : (
                             <div className="text-center py-24 bg-white/5 rounded-[2rem] border border-white/10 px-6 backdrop-blur-md">
                                 <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-purple-500/20 shadow-2xl">
                                     <svg className="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                     </svg>
                                 </div>
-                                <h3 className="text-2xl font-bold mb-3">Feed is being prepared</h3>
-                                <p className="text-gray-400 max-w-sm mx-auto mb-10 leading-relaxed text-lg">Like some movies or search for films to help the AI understand your unique taste better.</p>
-                                <a href="/movies" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-xl">
+                                <h3 className="text-2xl font-bold mb-3">Like Movies to Get Recommendations</h3>
+                                <p className="text-gray-400 max-w-sm mx-auto mb-10 leading-relaxed text-lg">Like some movies and the AI will recommend similar ones here based on your taste.</p>
+                                <a href="/" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-black rounded-2xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-xl">
                                     Browse Movies
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
                                 </a>
                             </div>
                         )}
+
                     </div>
                 </div>
             </main>
