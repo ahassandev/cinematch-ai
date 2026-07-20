@@ -4,23 +4,45 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Watchlist;
-use App\Models\Favorite;
-use App\Models\SearchHistory;
-use App\Models\MovieFeedback;
+use App\Repositories\Interfaces\WatchlistRepositoryInterface;
+use App\Repositories\Interfaces\FavoriteRepositoryInterface;
+use App\Repositories\Interfaces\SearchHistoryRepositoryInterface;
+use App\Repositories\Interfaces\MovieFeedbackRepositoryInterface;
+use App\Services\TMDBService;
+use Illuminate\Support\Facades\Log;
 
 class UserActivityController extends Controller
 {
+    protected $watchlistRepo;
+    protected $favoriteRepo;
+    protected $searchHistoryRepo;
+    protected $feedbackRepo;
+    protected $tmdb;
+
+    public function __construct(
+        WatchlistRepositoryInterface $watchlistRepo,
+        FavoriteRepositoryInterface $favoriteRepo,
+        SearchHistoryRepositoryInterface $searchHistoryRepo,
+        MovieFeedbackRepositoryInterface $feedbackRepo,
+        TMDBService $tmdb
+    ) {
+        $this->watchlistRepo = $watchlistRepo;
+        $this->favoriteRepo = $favoriteRepo;
+        $this->searchHistoryRepo = $searchHistoryRepo;
+        $this->feedbackRepo = $feedbackRepo;
+        $this->tmdb = $tmdb;
+    }
+
     public function dashboard(Request $request)
     {
-        $user = auth()->user();
+        $userId = auth()->id();
 
         $stats = [
-            'searches' => SearchHistory::where('user_id', $user->id)->count(),
-            'watchlists' => Watchlist::where('user_id', $user->id)->count(),
-            'favorites' => Favorite::where('user_id', $user->id)->count(),
-            'recent_searches' => SearchHistory::where('user_id', $user->id)->latest()->take(5)->pluck('query'),
-            'recent_watchlists' => Watchlist::where('user_id', $user->id)->latest()->take(5)->get(),
+            'searches' => $this->searchHistoryRepo->countByUserId($userId),
+            'watchlists' => $this->watchlistRepo->countByUserId($userId),
+            'favorites' => $this->favoriteRepo->countByUserId($userId),
+            'recent_searches' => $this->searchHistoryRepo->getRecentSearches($userId),
+            'recent_watchlists' => $this->watchlistRepo->getLatestByUserId($userId, 5),
         ];
 
         return response()->json($stats);
@@ -37,25 +59,8 @@ class UserActivityController extends Controller
             'year' => 'nullable'
         ]);
 
-        $watchlist = Watchlist::where('user_id', auth()->id())
-                              ->where('movie_id', $request->movie_id)
-                              ->first();
-
-        if ($watchlist) {
-            $watchlist->delete();
-            return response()->json(['message' => 'Removed from watchlist', 'status' => 'removed']);
-        } else {
-            Watchlist::create([
-                'user_id' => auth()->id(),
-                'movie_id' => $request->movie_id,
-                'title' => $request->title,
-                'poster_path' => $request->poster_path,
-                'genre' => $request->genre,
-                'rating' => $request->rating,
-                'year' => $request->year,
-            ]);
-            return response()->json(['message' => 'Added to watchlist', 'status' => 'added']);
-        }
+        $result = $this->watchlistRepo->toggle(auth()->id(), $request->all());
+        return response()->json($result);
     }
 
     public function toggleFavorite(Request $request)
@@ -66,22 +71,8 @@ class UserActivityController extends Controller
             'poster_path' => 'nullable',
         ]);
 
-        $favorite = Favorite::where('user_id', auth()->id())
-                              ->where('movie_id', $request->movie_id)
-                              ->first();
-
-        if ($favorite) {
-            $favorite->delete();
-            return response()->json(['message' => 'Removed from favorites', 'status' => 'removed']);
-        } else {
-            Favorite::create([
-                'user_id' => auth()->id(),
-                'movie_id' => $request->movie_id,
-                'title' => $request->title,
-                'poster_path' => $request->poster_path,
-            ]);
-            return response()->json(['message' => 'Added to favorites', 'status' => 'added']);
-        }
+        $result = $this->favoriteRepo->toggle(auth()->id(), $request->all());
+        return response()->json($result);
     }
 
     public function leaveFeedback(Request $request)
@@ -95,16 +86,7 @@ class UserActivityController extends Controller
             'tmdb_rating' => 'nullable|numeric',
         ]);
 
-        $feedback = MovieFeedback::updateOrCreate(
-            ['user_id' => auth()->id(), 'movie_id' => $request->movie_id],
-            [
-                'type' => $request->type,
-                'title' => $request->title,
-                'poster_path' => $request->poster_path,
-                'genre' => $request->genre,
-                'tmdb_rating' => $request->tmdb_rating,
-            ]
-        );
+        $this->feedbackRepo->updateOrCreateFeedback(auth()->id(), $request->movie_id, $request->all());
 
         return response()->json(['message' => 'Feedback saved', 'status' => $request->type]);
     }
@@ -119,12 +101,7 @@ class UserActivityController extends Controller
         $genre = $request->genre;
         $currentRating = (float) $request->tmdb_rating;
 
-        // Get all liked movies of the same genre for this user
-        $likedInGenre = MovieFeedback::where('user_id', auth()->id())
-            ->where('type', 'like')
-            ->where('genre', $genre)
-            ->whereNotNull('tmdb_rating')
-            ->get();
+        $likedInGenre = $this->feedbackRepo->getLikedInGenre(auth()->id(), $genre);
 
         if ($likedInGenre->isEmpty()) {
             return response()->json([
@@ -150,25 +127,22 @@ class UserActivityController extends Controller
 
     public function indexDisliked(Request $request)
     {
-        $disliked = MovieFeedback::where('user_id', auth()->id())
-                                 ->where('type', 'dislike')
-                                 ->latest()
-                                 ->get();
+        $disliked = $this->feedbackRepo->getFeedbackByTypeAndUser(auth()->id(), 'dislike');
         
-        // Auto-fix missing metadata for old records
-        $tmdb = app(\App\Services\TMDBService::class);
-        $disliked->each(function ($item) use ($tmdb) {
+        $disliked->each(function ($item) {
             if (empty($item->title) || empty($item->poster_path)) {
                 try {
-                    $details = $tmdb->getMovieDetails($item->movie_id);
+                    $details = $this->tmdb->getMovieDetails($item->movie_id);
                     if ($details) {
-                        $item->update([
+                        $this->feedbackRepo->update($item->id, [
                             'title' => $details['title'] ?? 'Unknown Movie',
                             'poster_path' => $details['poster_path'] ?? null
                         ]);
+                        $item->title = $details['title'] ?? 'Unknown Movie';
+                        $item->poster_path = $details['poster_path'] ?? null;
                     }
                 } catch (\Exception $e) {
-                    \Log::error("Failed to repair dislike metadata for {$item->movie_id}: " . $e->getMessage());
+                    Log::error("Failed to repair dislike metadata for {$item->movie_id}: " . $e->getMessage());
                 }
             }
         });
@@ -179,41 +153,34 @@ class UserActivityController extends Controller
     public function removeFeedback(Request $request)
     {
         $request->validate(['movie_id' => 'required']);
-        
-        MovieFeedback::where('user_id', auth()->id())
-                    ->where('movie_id', $request->movie_id)
-                    ->delete();
-                    
+        $this->feedbackRepo->removeFeedback(auth()->id(), $request->movie_id);
         return response()->json(['message' => 'Feedback removed']);
     }
 
     public function indexWatchlist(Request $request)
     {
-        $watchlists = Watchlist::where('user_id', auth()->id())->latest()->get();
+        $watchlists = $this->watchlistRepo->getLatestByUserId(auth()->id());
         return response()->json($watchlists);
     }
 
     public function indexLiked(Request $request)
     {
-        $liked = MovieFeedback::where('user_id', auth()->id())
-                                 ->where('type', 'like')
-                                 ->latest()
-                                 ->get();
+        $liked = $this->feedbackRepo->getFeedbackByTypeAndUser(auth()->id(), 'like');
         
-        // Auto-fix missing metadata for old records
-        $tmdb = app(\App\Services\TMDBService::class);
-        $liked->each(function ($item) use ($tmdb) {
+        $liked->each(function ($item) {
             if (empty($item->title) || empty($item->poster_path)) {
                 try {
-                    $details = $tmdb->getMovieDetails($item->movie_id);
+                    $details = $this->tmdb->getMovieDetails($item->movie_id);
                     if ($details) {
-                        $item->update([
+                        $this->feedbackRepo->update($item->id, [
                             'title' => $details['title'] ?? 'Unknown Movie',
                             'poster_path' => $details['poster_path'] ?? null
                         ]);
+                        $item->title = $details['title'] ?? 'Unknown Movie';
+                        $item->poster_path = $details['poster_path'] ?? null;
                     }
                 } catch (\Exception $e) {
-                    \Log::error("Failed to repair like metadata for {$item->movie_id}: " . $e->getMessage());
+                    Log::error("Failed to repair like metadata for {$item->movie_id}: " . $e->getMessage());
                 }
             }
         });
@@ -223,8 +190,8 @@ class UserActivityController extends Controller
 
     public function getMovieStatus($id)
     {
-        $user = auth()->user();
-        if (!$user) {
+        $userId = auth()->id();
+        if (!$userId) {
             return response()->json([
                 'in_watchlist' => false,
                 'is_liked' => false,
@@ -232,8 +199,8 @@ class UserActivityController extends Controller
             ]);
         }
 
-        $inWatchlist = Watchlist::where('user_id', $user->id)->where('movie_id', $id)->exists();
-        $feedback = MovieFeedback::where('user_id', $user->id)->where('movie_id', $id)->first();
+        $inWatchlist = $this->watchlistRepo->hasWatchlist($userId, $id);
+        $feedback = $this->feedbackRepo->getFeedbackByUserAndMovie($userId, $id);
 
         return response()->json([
             'in_watchlist' => $inWatchlist,

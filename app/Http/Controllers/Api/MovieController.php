@@ -5,15 +5,29 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\TMDBService;
-use App\Models\SearchHistory;
+use App\Repositories\Interfaces\SearchHistoryRepositoryInterface;
+use App\Repositories\Interfaces\WatchlistRepositoryInterface;
+use App\Repositories\Interfaces\MovieFeedbackRepositoryInterface;
+use App\DTOs\MovieCollectionDTO;
+use App\DTOs\MovieDTO;
 
 class MovieController extends Controller
 {
     protected $tmdb;
+    protected $searchHistoryRepo;
+    protected $watchlistRepo;
+    protected $feedbackRepo;
 
-    public function __construct(TMDBService $tmdb)
-    {
+    public function __construct(
+        TMDBService $tmdb,
+        SearchHistoryRepositoryInterface $searchHistoryRepo,
+        WatchlistRepositoryInterface $watchlistRepo,
+        MovieFeedbackRepositoryInterface $feedbackRepo
+    ) {
         $this->tmdb = $tmdb;
+        $this->searchHistoryRepo = $searchHistoryRepo;
+        $this->watchlistRepo = $watchlistRepo;
+        $this->feedbackRepo = $feedbackRepo;
     }
 
     public function search(Request $request)
@@ -24,71 +38,32 @@ class MovieController extends Controller
             return response()->json(['error' => 'Query is required'], 400);
         }
 
-        // Save search history if user is logged in
         if (auth()->check()) {
-            SearchHistory::create([
-                'user_id' => auth()->id(),
-                'query' => $query
-            ]);
+            $this->searchHistoryRepo->recordSearch(auth()->id(), $query);
         }
 
-        $results = $this->tmdb->searchMovies($query);
+        $rawResults = $this->tmdb->searchMovies($query);
+        $collectionDTO = MovieCollectionDTO::fromTMDBArray($rawResults);
         
-        if (auth()->check() && isset($results['results'])) {
-            $userId = auth()->id();
-            $movieIds = collect($results['results'])->pluck('id');
-            
-            $watchlistIds = \App\Models\Watchlist::where('user_id', $userId)
-                ->whereIn('movie_id', $movieIds)
-                ->pluck('movie_id')
-                ->toArray();
-                
-            $feedback = \App\Models\MovieFeedback::where('user_id', $userId)
-                ->whereIn('movie_id', $movieIds)
-                ->get()
-                ->keyBy('movie_id');
+        $this->applyUserInteractions($collectionDTO);
 
-            foreach ($results['results'] as &$movie) {
-                $movie['in_watchlist'] = in_array($movie['id'], $watchlistIds);
-                $movie['is_liked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'like';
-                $movie['is_disliked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'dislike';
-            }
-        }
-
-        return response()->json($results);
+        return response()->json($collectionDTO);
     }
 
     public function popular()
     {
-        $results = $this->tmdb->getPopularMovies();
+        $rawResults = $this->tmdb->getPopularMovies();
+        $collectionDTO = MovieCollectionDTO::fromTMDBArray($rawResults);
+        
+        $this->applyUserInteractions($collectionDTO);
 
-        if (auth()->check() && isset($results['results'])) {
-            $userId = auth()->id();
-            $movieIds = collect($results['results'])->pluck('id');
-            
-            $watchlistIds = \App\Models\Watchlist::where('user_id', $userId)
-                ->whereIn('movie_id', $movieIds)
-                ->pluck('movie_id')
-                ->toArray();
-                
-            $feedback = \App\Models\MovieFeedback::where('user_id', $userId)
-                ->whereIn('movie_id', $movieIds)
-                ->get()
-                ->keyBy('movie_id');
-
-            foreach ($results['results'] as &$movie) {
-                $movie['in_watchlist'] = in_array($movie['id'], $watchlistIds);
-                $movie['is_liked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'like';
-                $movie['is_disliked'] = isset($feedback[$movie['id']]) && $feedback[$movie['id']]->type === 'dislike';
-            }
-        }
-
-        return response()->json($results);
+        return response()->json($collectionDTO);
     }
 
     public function details($id)
     {
         $results = $this->tmdb->getMovieDetails($id);
+        // Returning raw for details as it has nested properties not in DTO
         return response()->json($results);
     }
 
@@ -100,8 +75,9 @@ class MovieController extends Controller
 
     public function recommendations($id)
     {
-        $results = $this->tmdb->getRecommendations($id);
-        return response()->json($results);
+        $rawResults = $this->tmdb->getRecommendations($id);
+        $collectionDTO = MovieCollectionDTO::fromTMDBArray($rawResults);
+        return response()->json($collectionDTO);
     }
 
     public function genres()
@@ -126,41 +102,38 @@ class MovieController extends Controller
             $params['vote_average.gte'] = $request->input('vote_average_gte');
         }
 
-        $results = $this->tmdb->discoverMovies($params);
-        return response()->json($results);
+        $rawResults = $this->tmdb->discoverMovies($params);
+        $collectionDTO = MovieCollectionDTO::fromTMDBArray($rawResults);
+        
+        return response()->json($collectionDTO);
     }
 
     public function getPersonalizedRecommendations(Request $request)
     {
         $user = auth()->user();
 
-        // No user — return popular movies
         if (!$user) {
             $popular = $this->tmdb->getPopularMovies();
-            return response()->json($popular);
+            $collectionDTO = MovieCollectionDTO::fromTMDBArray($popular);
+            return response()->json($collectionDTO);
         }
 
-        // Get last 5 liked movies
-        $likedMovies = \App\Models\MovieFeedback::where('user_id', $user->id)
-            ->where('type', 'like')
-            ->latest()
-            ->take(5)
-            ->get();
+        $likedMovies = $this->feedbackRepo->getFeedbackByTypeAndUser($user->id, 'like')->take(5);
+        $interactedMovieIds = $this->feedbackRepo->getFeedbackMapForMovies($user->id, [])->keys()->toArray(); // Needs actual fetching logic if required
+        // Actually, just fetch all feedbacks for user
+        $interactedMovieIds = \App\Models\MovieFeedback::where('user_id', $user->id)->pluck('movie_id')->toArray();
 
-        // Get all interacted movies to exclude them
-        $interactedMovieIds = \App\Models\MovieFeedback::where('user_id', $user->id)
-            ->pluck('movie_id')
-            ->toArray();
-
-        // No likes yet — return popular movies with label
         if ($likedMovies->isEmpty()) {
             $popular = $this->tmdb->getPopularMovies();
-            $results = collect($popular['results'] ?? [])->map(function ($r) {
-                $r['ai_reason'] = 'popular';
-                $r['score'] = 70;
-                return $r;
-            });
-            return response()->json(['results' => $results]);
+            $collectionDTO = MovieCollectionDTO::fromTMDBArray($popular);
+            
+            // Add label using mapping
+            foreach ($collectionDTO->results as $movie) {
+                $movie->aiReason = 'popular';
+                $movie->score = 70;
+            }
+            
+            return response()->json($collectionDTO);
         }
 
         return $this->getAggregateRecommendations($likedMovies, $interactedMovieIds);
@@ -196,30 +169,23 @@ class MovieController extends Controller
             $credits = $this->tmdb->getMovieCredits($movie->movie_id);
             $keywords = $this->tmdb->getMovieKeywords($movie->movie_id);
 
-            // Director
             $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
             if ($director) {
                 $likedDirectors[$director['id']] = $director['name'];
             }
 
-            // Genres
             foreach ($details['genres'] ?? [] as $g) {
                 $likedGenreIds[$g['id']] = $g['name'];
             }
 
-            // Keywords (Storyline)
             foreach ($keywords['keywords'] ?? [] as $kw) {
                 $likedKeywordIds[$kw['id']] = $kw['name'];
             }
         }
 
-        // Now that we have all directors, genres, and keywords from all base movies, make the discovery calls ONCE per item
-        
-        // --- Priority 1: Same Director ---
         foreach ($likedDirectors as $did => $dname) {
             $directorMovies = $this->tmdb->discoverMovies(['with_crew' => $did]);
             foreach ($directorMovies['results'] ?? [] as $dm) {
-                // Skip if it's already one of the base movies or if it was interacted with
                 if ($baseMovies->contains('movie_id', $dm['id'])) continue;
                 if (in_array($dm['id'], $excludeMovieIds)) continue;
 
@@ -232,7 +198,6 @@ class MovieController extends Controller
             }
         }
 
-        // --- Priority 2: Same Genre + Keywords (Storyline) ---
         if (count($allRecs) < 12 && !empty($likedGenreIds)) {
             $discovery = $this->tmdb->discoverMovies([
                 'with_genres' => implode(',', array_slice(array_keys($likedGenreIds), 0, 3)),
@@ -250,7 +215,6 @@ class MovieController extends Controller
             }
         }
 
-        // --- Priority 3: Fallback (TMDB recommendations) ---
         if (count($allRecs) < 16) {
             foreach ($baseMovies as $movie) {
                 $recs = $this->tmdb->getRecommendations($movie->movie_id);
@@ -281,19 +245,17 @@ class MovieController extends Controller
 
         $limitedRecs = collect($allRecs)->sortByDesc('score')->values()->take(12);
 
-        // Fetch director for each of the limited recommendations if not already present
         $finalResults = $limitedRecs->map(function($rec) {
             if (!isset($rec['ai_director'])) {
                 $credits = $this->tmdb->getMovieCredits($rec['id']);
                 $director = collect($credits['crew'] ?? [])->firstWhere('job', 'Director');
                 $rec['ai_director'] = $director ? $director['name'] : null;
             }
-            return $rec;
+            return MovieDTO::fromTMDBArray($rec); // Returns DTO instead of Array
         });
 
-        return response()->json([
-            'results' => $finalResults
-        ]);
+        // Wrap the finalResults in a MovieCollectionDTO
+        return response()->json(new MovieCollectionDTO($finalResults->toArray()));
     }
 
     public function getTrending(Request $request)
@@ -306,7 +268,28 @@ class MovieController extends Controller
         } else {
             $data = $this->tmdb->getTrendingMovies($timeWindow);
         }
+        
+        $collectionDTO = MovieCollectionDTO::fromTMDBArray($data);
+        return response()->json($collectionDTO);
+    }
+    
+    /**
+     * Applies interactions to a collection of movies
+     */
+    protected function applyUserInteractions(MovieCollectionDTO $collectionDTO): void
+    {
+        if (auth()->check() && count($collectionDTO->results) > 0) {
+            $userId = auth()->id();
+            $movieIds = array_map(fn($m) => $m->id, $collectionDTO->results);
+            
+            $watchlistIds = $this->watchlistRepo->getMovieIdsByUser($userId, $movieIds);
+            $feedbackMap = $this->feedbackRepo->getFeedbackMapForMovies($userId, $movieIds);
 
-        return response()->json($data);
+            foreach ($collectionDTO->results as $movie) {
+                $movie->inWatchlist = in_array($movie->id, $watchlistIds);
+                $movie->isLiked = isset($feedbackMap[$movie->id]) && $feedbackMap[$movie->id]->type === 'like';
+                $movie->isDisliked = isset($feedbackMap[$movie->id]) && $feedbackMap[$movie->id]->type === 'dislike';
+            }
+        }
     }
 }
